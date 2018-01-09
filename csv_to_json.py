@@ -2,7 +2,6 @@ import csv
 import json
 
 csvfile = open('games.csv', 'r')
-jsonfile = open('file.json', 'w')
 
 games_list = []
 fieldnames = ("developer", "game", "setting", "engine", "genre",  "visual_style", "animation", "public_build", "latest_version",\

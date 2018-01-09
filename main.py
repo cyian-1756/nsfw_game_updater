@@ -5,11 +5,12 @@ import json
 import requests
 import re
 
-parser = argparse.ArgumentParser(description="Update your NSFW games")
+parser = argparse.ArgumentParser(description="Keep track of your NSFW games")
 parser.add_argument("--list-all", help="List all games in the datebase", action="store_true")
 parser.add_argument("--list-by-dev", help="List all games from a creator")
 parser.add_argument("--list-by-setting", help="List all games from in a setting")
 parser.add_argument("--list-by-engine", help="List all games using a certain engine")
+parser.add_argument("--list-by-genre", help="List all games using in a genre")
 parser.add_argument("--download", help="Download a game", action="store_true")
 parser.add_argument("--os", help="The OS to download the game for")
 parser.add_argument("--download-link", help="Print the download link for a game", action="store_true")
@@ -43,7 +44,7 @@ def download_game(gamename, os):
     # Check if we support downloading from this site
     if not can_download(link):
         print("NSFW game updater can't handle downloading from that site yet")
-        print("Please download the link in your broswer ")
+        print("Please download the link in your broswer")
         print("url: {}".format(link))
         return
     # Make sure we have the game in the database
@@ -86,6 +87,9 @@ if args.list_by_setting:
 
 if args.list_by_engine:
     print_list_by(json_data, "engine", args.list_by_engine.lower())
+
+if args.list_by_genre:
+    print_list_by(json_data, "genre", args.list_by_genre.lower())
 
 if args.download and args.os:
     download_game(args.game_name.lower(), args.os.lower())

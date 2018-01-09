@@ -73,7 +73,7 @@ if args.list_all:
 
 if args.list_by_dev:
     for i in json_data:
-        if i["Developer"].lower() == args.list_by_dev.lower():
+        if i["developer"].lower() == args.list_by_dev.lower():
             print_data(i)
 
 if args.download and args.os:

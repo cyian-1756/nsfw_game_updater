@@ -8,7 +8,10 @@ import re
 parser = argparse.ArgumentParser(description="Update your NSFW games")
 parser.add_argument("--list-all", help="List all games in the datebase", action="store_true")
 parser.add_argument("--list-by-dev", help="List all games from a creator")
-parser.add_argument("--download", help="Download a game")
+parser.add_argument("--download", help="Download a game", action="store_true")
+parser.add_argument("--os", help="The OS to download the game for")
+parser.add_argument("--download-link", help="Print the download link for a game", action="store_true")
+parser.add_argument("--game-name", help="The name of the game")
 args = parser.parse_args()
 
 jsonfile = open('games.json', 'r')
@@ -67,9 +70,22 @@ Animation: {animation}\nPublic Build: {public_build}\nGraphtreon: {graphtreon}\n
 if args.list_all:
     for i in json_data:
         print_data(i)
+
 if args.list_by_dev:
     for i in json_data:
         if i["Developer"].lower() == args.list_by_dev.lower():
             print_data(i)
-if args.download:
-    download_game(args.download, "windows")
+
+if args.download and args.os:
+    download_game(args.game_name.lower(), args.os.lower())
+elif args.download and not args.os:
+    print("[!] You need to specify an OS with the --os flag")
+
+if args.download_link:
+    if args.os:
+        if args.game_name:
+            print("Download link: " + get_game_download_link(args.game_name.lower(), args.os.lower()))
+        else:
+            print("[!] You need to specify a game title with the --game-name flag")
+    else:
+        print("[!] You need to specify an OS with the --os flag")

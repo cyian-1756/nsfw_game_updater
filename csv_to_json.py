@@ -1,11 +1,12 @@
 import csv
 import json
 
-csvfile = open('test.csv', 'r')
+csvfile = open('games.csv', 'r')
 jsonfile = open('file.json', 'w')
 
 games_list = []
-fieldnames = ("int", "Developer", "Game", "Setting", "Engine", "Genre",  "Visual style", "Animation", "Support", "Public Build", "Graphtreon")
+fieldnames = ("developer", "game", "setting", "engine", "genre",  "visual_style", "animation", "public_build", "latest_version",\
+"graphtreon", "download_link_windows", "download_link_linux", "download_link_mac", "download_link_android")
 reader = csv.DictReader( csvfile, fieldnames)
 for row in reader:
     # print(row)

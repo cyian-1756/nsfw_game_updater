@@ -19,9 +19,9 @@ json_data = json.loads(jsonfile.read())
 
 def print_data(info):
     print("Developer: {dev}\nGame: {game}\nSetting: {setting}\nEngine: {engine}\nGenre: {genre}\nVisual style: {style}\n\
-Animation: {animation}\nSupport: {support}\nPublic Build: {public_build}\nGraphtreon: {graphtreon}\n"\
-    .format(dev=info["Developer"], game=info["Game"], setting=info["Setting"], engine=info["Engine"], genre=info["Genre"], \
-    style=info["Visual style"], animation=info["Animation"], support=info["Support"], public_build=info["Public Build"], graphtreon=info["Graphtreon"]))
+Animation: {animation}\nPublic Build: {public_build}\nGraphtreon: {graphtreon}\n"\
+    .format(dev=info["developer"], game=info["game"], setting=info["setting"], engine=info["engine"], genre=info["genre"], \
+    style=info["visual_style"], animation=info["animation"], public_build=info["public_build"], graphtreon=info["graphtreon"]))
 
 if args.list_all:
     for i in json_data:

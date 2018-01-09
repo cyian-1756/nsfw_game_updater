@@ -8,6 +8,8 @@ import re
 parser = argparse.ArgumentParser(description="Update your NSFW games")
 parser.add_argument("--list-all", help="List all games in the datebase", action="store_true")
 parser.add_argument("--list-by-dev", help="List all games from a creator")
+parser.add_argument("--list-by-setting", help="List all games from in a setting")
+parser.add_argument("--list-by-engine", help="List all games using a certain engine")
 parser.add_argument("--download", help="Download a game", action="store_true")
 parser.add_argument("--os", help="The OS to download the game for")
 parser.add_argument("--download-link", help="Print the download link for a game", action="store_true")
@@ -60,6 +62,11 @@ def download_game(gamename, os):
                     f.write(chunk)
             print("Done")
 
+def print_list_by(json_data, thing_to_list_by, thing_value):
+    for i in json_data:
+        if i[thing_to_list_by].lower() == thing_value:
+            print_data(i)
+
 
 def print_data(info):
     print("Developer: {dev}\nGame: {game}\nSetting: {setting}\nEngine: {engine}\nGenre: {genre}\nVisual style: {style}\n\
@@ -72,9 +79,13 @@ if args.list_all:
         print_data(i)
 
 if args.list_by_dev:
-    for i in json_data:
-        if i["developer"].lower() == args.list_by_dev.lower():
-            print_data(i)
+    print_list_by(json_data, "developer", args.list_by_dev.lower())
+
+if args.list_by_setting:
+    print_list_by(json_data, "setting", args.list_by_setting.lower())
+
+if args.list_by_engine:
+    print_list_by(json_data, "engine", args.list_by_engine.lower())
 
 if args.download and args.os:
     download_game(args.game_name.lower(), args.os.lower())

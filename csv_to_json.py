@@ -10,5 +10,4 @@ reader = csv.DictReader( csvfile, fieldnames)
 for row in reader:
     # print(row)
     games_list.append(row)
-t = json.dumps(games_list, jsonfile, indent=4)
 print(t)

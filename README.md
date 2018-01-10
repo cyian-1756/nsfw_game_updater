@@ -28,12 +28,29 @@ When adding a game you may include
 
 * A link to the devs graphtreon (Under graphtreon)
 
+
+## Usage
+
+### Searching
+
+The program allows search the game database by developer, game name, setting, engine and genre
+
+Example: `python3 main.py --list-by-dev mity`
+
+### Downloading
+
+The program allows downloading some games
+
+Example: `python3 main.py --download --game-name "trials in tainted space" --os windows`
+
 ## TODO
 
-[ ] Add download links for all games currently in the list
+[] Add download links for all games currently in the list
 
-[ ] Add the latest version of all download links in the list
+[] Add the latest version of all download links in the list
 
-[ ] Write a web scraper to check if a new version of the game is out 
+[] Write a web scraper to check if a new version of the game is out 
 
-[ ] Update main.py to allow for downloading games without using outside tools
+[X] Update main.py to allow for downloading games without using outside tools where ever possible
+
+[] Add GUI

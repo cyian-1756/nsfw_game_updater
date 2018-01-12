@@ -5,13 +5,14 @@ import csv
 import os
 import re
 
-jsonfile = open('games.json', 'r')
-json_data = json.loads(jsonfile.read())
 
+def load_json():
+    with open('games.json', 'r') as jsonfile:
+        return json.loads(jsonfile.read())
 
 def get_current_download_link(game, os):
     link = ""
-    for i in json_data:
+    for i in load_json():
         if i["game"].lower() == game.lower():
             return i["download_link_" + os]
     return None
@@ -24,30 +25,30 @@ def get_game_download_title(r):
         return None
 
 
-# TODO move to using the json file
-def update_csv_version(game_name, new_version):
-    writer = csv.writer(open('output.csv', 'w'))
-    with open('games.csv') as f:
-        r = csv.reader(f)
-        for line in r:
-            if line[1].lower() == game_name.lower():
-                line[8] = new_version
-            writer.writerow(line)
-    os.remove("games.csv")
-    os.rename("output.csv", "games.csv")
+def update_json_version(game_name, new_version):
+    json_list = []
+    for sub_array in load_json():
+        if sub_array["game"].lower() == game_name.lower():
+            sub_array["latest_version"] = new_version
+        json_list.append(sub_array)
+    with open('temp_json', 'w', encoding="utf-8") as f:
+         f.write(json.dumps(json_list, indent=4))
+    os.remove("games.json")
+    os.rename("temp_json", "games.json")
+    
 
 def get_page(page):
     return requests.get(page)
 
 def get_page_to_check(game_name):
-    for i in json_data:
+    for i in load_json():
         if i["game"].lower() == game_name.lower():
             return i["public_build"]
     print("Could not get page")
     return None
 
 def get_game_latest_version(game_name):
-    for i in json_data:
+    for i in load_json():
         if i["game"].lower() == game_name.lower():
             return str(i["latest_version"])
 
@@ -59,7 +60,7 @@ def insexsity():
     print("Latest version of insexsity in the db is " + get_game_latest_version("insexsity"))
     if str(version) != get_game_latest_version("insexsity"):
         print("There is a new version of insexsity")
-        update_csv_version("insexsity", version)
+        update_json_version("insexsity", version)
 
 def trials_in_tainted_space():
     game_name = "trials in tainted space"
@@ -71,6 +72,4 @@ def trials_in_tainted_space():
     get_game_latest_version(game_name)
     if str(version) != get_game_latest_version(game_name):
         print("There is a new version of {}".format(game_name))
-        update_csv_version(game_name, version)
-    
-
+        update_json_version(game_name, version)

@@ -32,12 +32,12 @@ def get_game_download_link(gamename, os):
     if found_game == False:
         return "No game with that name found"
 
-def get_game_download_title(r, gamename):
+def get_game_download_title(r, gamename, link):
     try:
         d = r.headers['content-disposition']
         return re.findall("filename=(.+)", d)[0]
     except KeyError:
-        return gamename
+        return link.split("/")[-1:][0]
 
 def download_game(gamename, os):
     link = get_game_download_link(gamename, os)
@@ -57,9 +57,10 @@ def download_game(gamename, os):
         print("Downloading: {}".format(link))
         r = requests.get(link, stream=True)
         if r.status_code == 200:
-            print("Downloading to file: {}".format(get_game_download_title(r, gamename)))
-            with open(get_game_download_title(r, gamename), 'wb') as f:
-                for chunk in r.iter_content():
+            download_title = get_game_download_title(r, gamename, link)
+            print("Downloading to file: {}".format(download_title))
+            with open(download_title, 'wb') as f:
+                for chunk in r.iter_content(1024):
                     f.write(chunk)
             print("Done")
 

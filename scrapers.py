@@ -24,6 +24,9 @@ def get_game_download_title(r):
     except KeyError:
         return None
 
+# Download links for insexsity are just http://insexsity.com/$VERSION_$OS_64_(U).zip
+# so they can be easily generated.
+# Note: insexsity calls the OS "windows" "PC"
 def update_insexsity_download_links(old_version, new_version):
     json_list = []
     for sub_array in load_json():

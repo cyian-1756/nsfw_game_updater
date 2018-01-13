@@ -21,7 +21,7 @@ jsonfile = open('games.json', 'r')
 json_data = json.loads(jsonfile.read())
 
 def can_download(link):
-    return "mediafire.com" not in link and "mega.nz" not in link
+    return "mediafire.com" not in link and "mega.nz" not in link and "itch.io" not in link
 
 def get_game_download_link(gamename, os):
     found_game = False

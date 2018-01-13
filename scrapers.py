@@ -24,6 +24,19 @@ def get_game_download_title(r):
     except KeyError:
         return None
 
+def update_insexsity_download_links(old_version, new_version):
+    json_list = []
+    for sub_array in load_json():
+        if sub_array["game"].lower() == "insexsity":
+            for opsys in ["windows", "mac", "android"]:
+                sub_array["download_link_{}".format(opsys)] = sub_array["download_link_{}".format(opsys)].replace(old_version, new_version)
+        json_list.append(sub_array)
+    with open('temp_json', 'w', encoding="utf-8") as f:
+         f.write(json.dumps(json_list, indent=4))
+    os.remove("games.json")
+    os.rename("temp_json", "games.json")
+
+
 
 def update_json_version(game_name, new_version):
     json_list = []
@@ -56,17 +69,17 @@ def insexsity():
     r = get_page(get_page_to_check("insexsity"))
     soup = BeautifulSoup(r.text, "lxml")
     version = soup.find("div", {"class": "container-fluid"}).find("div", {"class": "warringText"}).get_text().replace("Current version- ", "")
-    print("Latest version of insexsity is " + version)
-    print("Latest version of insexsity in the db is " + get_game_latest_version("insexsity"))
-    if str(version) != get_game_latest_version("insexsity"):
+    version_on_disk = get_game_latest_version("insexsity")
+    if str(version) != version_on_disk:
         print("There is a new version of insexsity")
         update_json_version("insexsity", version)
+        update_insexsity_download_links(version_on_disk, version)
 
 def trials_in_tainted_space():
     game_name = "trials in tainted space"
     link = get_current_download_link(game_name, "linux")
     if link is None:
-        print("Unable to get download link for: trials in tainted space")
+        print("Unable to get download link for: {}".format(game_name))
     r = requests.get(link, stream=True)
     version = get_game_download_title(r).replace("TiTS_", "").replace(".swf", "")
     get_game_latest_version(game_name)

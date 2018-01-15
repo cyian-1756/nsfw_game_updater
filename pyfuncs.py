@@ -33,3 +33,10 @@ def update_json_version(game_name, new_version):
             sub_array["latest_version"] = new_version
         json_list.append(sub_array)
     write_json_game_db(json_list)
+
+def add_new_game(json_dict_to_add):
+    json_list = []
+    for sub_array in load_json():
+        json_list.append(sub_array)
+    json_list.append(json_dict_to_add)
+    write_json_game_db(json_list)

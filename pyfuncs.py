@@ -13,6 +13,15 @@ def get_current_download_link(game, os):
             return i["download_link_" + os]
     return None
 
+def update_current_download_link(game_name, os, new_link):
+    # TODO rewrite this to only write the db to disk once
+    json_list = []
+    for sub_array in load_json():
+        if sub_array["game"].lower() == game_name.lower():
+            sub_array["download_link_" + os] = new_link
+        json_list.append(sub_array)
+    write_json_game_db(json_list)
+
 def get_game_download_title(r):
     try:
         d = r.headers['content-disposition']

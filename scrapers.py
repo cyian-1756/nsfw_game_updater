@@ -55,3 +55,29 @@ def trials_in_tainted_space():
     if str(version) != get_game_latest_version(game_name):
         print("There is a new version of {}".format(game_name))
         update_json_version(game_name, version)
+
+def summer_time_sage():
+    # As the summertime saga site uses JS we need to use selenium
+    game_name = "Summertime Saga"
+    from selenium import webdriver
+    from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+    import time
+    driver = webdriver.Firefox()
+    driver.get("https://summertimesaga.com/download")
+    time.sleep(4)
+    for i in range(1,4):
+        link = driver.find_element_by_xpath("(//a[contains(text(),'mega')])[{}]".format(i)).get_attribute("href")
+        if i is 1:
+            if get_current_download_link(game_name, "windows") != link:
+                print("Updating Windows link to {}".format(link))
+                update_current_download_link(game_name, "windows", link)
+                print("Updating Linux link to {}".format(link))
+                update_current_download_link(game_name, "linux", link)
+        elif i is 2:
+            if get_current_download_link(game_name, "mac") != link:
+                print("Updating Mac link to {}".format(link))
+                update_current_download_link(game_name, "mac", link)
+        elif i is 3:
+            if get_current_download_link(game_name, "android") != link:
+                print("Updating android link to {}".format(link))
+                update_current_download_link(game_name, "android", link)

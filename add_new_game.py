@@ -15,6 +15,7 @@ parser.add_argument("--download-link-windows", help="The windows download link",
 parser.add_argument("--download-link-linux", help="The Linux download link", default="Doesn't support")
 parser.add_argument("--download-link-mac", help="The Mac download link", default="Doesn't support")
 parser.add_argument("--download-link-android", help="The android download link", default="Doesn't support")
+parser.add_argument("--graphtreon", help="Link to the devs graphtreon", default="Doesn't have")
 args = parser.parse_args()
 
 json_to_add = {\

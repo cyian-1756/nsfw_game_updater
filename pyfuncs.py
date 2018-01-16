@@ -74,3 +74,14 @@ def game_exists(game_name, dev):
         if sub_array["game"].lower() == game_name.lower():
             return True
     return False
+
+def mass_update_dev_info(dev, field, new_value):
+    json_list = []
+    for sub_array in load_json():
+        if sub_array["developer"].lower() == dev.lower():
+            sub_array[field] = new_value
+        json_list.append(sub_array)
+    write_json_game_db(json_list)
+
+def update_dev_graphtreon(dev, new_graphtreon):
+    mass_update_dev_info(dev, "graphtreon", new_graphtreon)

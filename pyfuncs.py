@@ -1,6 +1,7 @@
 import json
 import re
 import os
+import requests
 
 def load_json():
     with open('games.json', 'r') as jsonfile:
@@ -21,6 +22,21 @@ def update_current_download_link(game_name, os, new_link):
             sub_array["download_link_" + os] = new_link
         json_list.append(sub_array)
     write_json_game_db(json_list)
+
+# Check if this url was shortened
+def is_shortened(url):
+    return "goo.gl" in url
+
+def unshorten_url(url):
+    resp = requests.head(url, allow_redirects=True)
+    return resp.url
+
+# This checks the url and makes sure it's not shortened
+def check_url(url):
+    if is_shortened(url):
+        print("Unshortening " + url)
+        return unshorten_url(url)
+    return url
 
 def get_game_download_title(r):
     try:

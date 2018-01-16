@@ -2658,7 +2658,7 @@
     {
         "animation": "No",
         "developer": "akabur",
-        "download_link_android": "https://goo.gl/zWEp0I",
+        "download_link_android": "https://mega.nz/#!zU5UgKCY!GzZOmtCC5KxZk3KlTtrBmoydphmDIax5DvQAA_Q5LVo",
         "download_link_linux": "Doesn't support",
         "download_link_mac": "http://akabur.com/downloads4all/wt/Witch_Trainer_1.02-mac.zip",
         "download_link_windows": "http://akabur.com/downloads4all/wt/Witch_Trainer_1.02-win.zip",
@@ -2668,6 +2668,21 @@
         "latest_version": "1.02",
         "public_build": "http://www.test.akabur.com",
         "setting": "Fantasy",
+        "visual_style": "2D anime"
+    },
+    {
+        "animation": "No",
+        "developer": "akabur",
+        "download_link_android": "https://mega.nz/#!HMASDLpD!lJJiySNgBlC7gBXGxDq6gpvnVoa2Xty7k1Seg_wZf3g",
+        "download_link_linux": "https://mega.nz/#!TEh3EYbJ!EqBsTD3-3ZVhiMZVXEWF8Ycz-5OsBywp0XKM27nR1F0",
+        "download_link_mac": "https://mega.nz/#!TVpQyLxT!g3xbHGF-x01W2SUHAP1mqDGHD6LlCzwBXeKN2f5KhZU",
+        "download_link_windows": "https://mega.nz/#!6UByRR5K!F5g7-e43KvFPTZr-RSf6qbsQekP9bimtU3LVBBTUUsA",
+        "engine": "Ren'Py",
+        "game": "Star Channel 34",
+        "genre": "Trainer",
+        "latest_version": "2.02",
+        "public_build": "http://www.test.akabur.com/",
+        "setting": "Sci-fi",
         "visual_style": "2D anime"
     }
 ]

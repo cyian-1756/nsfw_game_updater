@@ -60,8 +60,17 @@ def update_json_version(game_name, new_version):
     write_json_game_db(json_list)
 
 def add_new_game(json_dict_to_add):
+    if game_exists(json_dict_to_add["game"], json_dict_to_add["developer"]):
+        print("Game with that title and developer is already in DB")
+        return
     json_list = []
     for sub_array in load_json():
         json_list.append(sub_array)
     json_list.append(json_dict_to_add)
     write_json_game_db(json_list)
+
+def game_exists(game_name, dev):
+    for sub_array in load_json():
+        if sub_array["game"].lower() == game_name.lower():
+            return True
+    return False

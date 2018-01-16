@@ -2684,5 +2684,20 @@
         "public_build": "http://www.test.akabur.com/",
         "setting": "Sci-fi",
         "visual_style": "2D anime"
+    },
+    {
+        "animation": "No",
+        "developer": "akabur",
+        "download_link_android": "https://mega.nz/#!6MxlhK6b!4ym7n3Nv_pO4952V4VDvHJpqG8gkPtFqVoX8fpRvZfA",
+        "download_link_linux": "Doesn't support",
+        "download_link_mac": "https://mega.nz/#!DJpigRBL!ELd4ieO33QLbl0zMiHGsRReDARb6WwyfMR8bzxkr9eg",
+        "download_link_windows": "http://luteola.net/Magic_Shop_1.03-win.zip",
+        "engine": "Ren'Py",
+        "game": "Magic Shop",
+        "genre": "VN",
+        "latest_version": "1.03",
+        "public_build": "http://www.test.akabur.com/",
+        "setting": "Fantasy",
+        "visual_style": "2D anime"
     }
 ]

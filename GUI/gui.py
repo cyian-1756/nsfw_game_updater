@@ -15,6 +15,7 @@ import os
 from constants import *
 from options import OptionGUI
 from download_thread import *
+from add_new import AddNewGUI
 
 ####FOR SOME REASON self.winfo_width() returns 1 even after self.update_idletasks() FIXME
 #For now, set the geometry manually
@@ -33,7 +34,9 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 
 	def init_layout(self):
 		self.menubar = tk.Menu(self)
-		self.menubar.add_command(label="File", command=self.file_menu)
+		filemenu = tk.Menu(self)
+		filemenu.add_command(label="Add New Game", command=self.add_new_game)
+		self.menubar.add_cascade(label="File", menu=filemenu)
 		self.menubar.add_command(label="Edit", command=self.edit_menu)
 		self.menubar.add_command(label="Options", command=self.open_options)
 		self.menubar.add_command(label="About", command=self.about)
@@ -135,10 +138,15 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			thread.join()
 		self.downloaded_games[gamename] = version
 		pass
-	def file_menu():
+	def add_new_game(self):
+		global ADD_NEW_OPEN
+		if not ADD_NEW_OPEN:
+			ADD_NEW_OPEN = True
+			window = AddNewGUI(master=self.master)
+			window.mainloop()
 		pass
 
-	def edit_menu():
+	def edit_menu(self):
 		pass
 
 	def open_options(self):

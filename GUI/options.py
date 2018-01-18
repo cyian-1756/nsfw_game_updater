@@ -6,7 +6,7 @@ import tkinter.ttk as ttk
 from tkinter.filedialog import askdirectory
 from constants import *
 
-class OptionGUI(tk.Toplevel): #TODO : make an option window to pick colors for error highlighting, add new filters
+class OptionGUI(tk.Toplevel):
 	def __init__(self, master = None):
 		super(OptionGUI, self).__init__()
 		self.master = master

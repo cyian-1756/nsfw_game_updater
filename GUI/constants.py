@@ -3,6 +3,8 @@ import os
 
 DOWNLOAD_PATH = ""
 OPTIONSOPEN = False
+ADD_NEW_OPEN = False
+
 config = configparser.ConfigParser()
 config.read("config.cfg")
 GEOMETRY = config["GEOMETRY"]["x"] + "x" + config["GEOMETRY"]["y"]

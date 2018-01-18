@@ -54,7 +54,10 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.menubar = tk.Menu(self)
 		filemenu = tk.Menu(self)
 		filemenu.add_command(label="Add New Game", command=self.add_new_game)
+		filemenu.add_command(label='Copy Link to Clipboard', command=self.onCtrlD)
+		filemenu.add_command(label='Copy Data to Clipboard', command=self.onCtrlC)
 		editmenu = tk.Menu(self)
+		editmenu.add_command(label="Edit Selected Entry", command=self.edit_current_game)
 		self.menubar.add_cascade(label="File", menu=filemenu)
 		self.menubar.add_cascade(label="Edit", menu=editmenu)
 		self.menubar.add_command(label="Options", command=self.open_options)
@@ -113,6 +116,23 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				self.treeview.insert('', 'end', values = formatted)
 		pass
 
+	def update_game_in_tree(self, game_json):
+		for item in self.treeview.get_children():
+			if item["values"][self.columns.index("Game")].lower() == game_json["game"].lower():
+				tmp = []
+				for col in self.columns:
+					tmp.append(game_json[col.lower()])
+				tmp = tuple(tmp)
+				self.treeview.item(item, values=tmp)
+
+	def edit_current_game(self):
+		if self.add_game_gui is None:
+			data = self.get_json_from_tree()
+			if data is not None:
+				self.add_game_gui = AddNewGUI(master=self, editdata=data)
+				self.add_game_gui.mainloop()
+		pass
+
 	def custom_loop(self):
 		if self.thread is not None:
 			if self.thread.is_alive:
@@ -120,28 +140,39 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.update_idletasks()
 		self.update()
 		self.after(5, self.custom_loop)
+	def get_json_from_tree(self, return_item=False):
+		try:
+			item = self.treeview.item(self.treeview.focus())["values"]
+			if return_item:
+				return item
+			i = self.columns.index("Game")
+			gamename = item[i]
+			for g in self.json_data:
+				if g["game"] == gamename:
+					return g
+		except IndexError:
+			messagebox.showerror("Error", message="You need to select an item first !")
+			return
 
 	def download_selected_game(self): #It would be simpler if each game had its own ID, as well as to version track later on.
 		def can_download(link):
 			return "mega.nz" not in link and "itch.io" not in link
-		item = self.treeview.item(self.treeview.focus())["values"]
-		i = self.columns.index("Game")
-		gamename = item[i]
+		game_json = self.get_json_from_tree()
+		if game_json is None:
+			return
 		if self.platformToDownload.get() == "Automatic":
 			current_os = platform.system().lower()
 		else:
 			current_os = self.platformToDownload.get().lower()
 		if current_os != '':
-			for g in self.json_data:
-				if g["game"] == gamename:
-					url = g["download_link_{}".format(current_os)]
-					version = g["latest_version"]
+			url = game_json["download_link_{}".format(current_os)]
+			version = game_json["latest_version"]
 		if DOWNLOAD_PATH=="/" or DOWNLOAD_PATH == "":
 			download = os.getcwd()+'\\'
 		else:
 			download = DOWNLOAD_PATH
 		if not can_download(url):
-			messagebox.showerror("Error", "NSFW Game Manager doesn't support downloading from mediafire, mega or itch.io yet.")
+			messagebox.showerror("Error", "NSFW Game Manager doesn't support downloading from mega or itch.io yet.")
 		elif url == "-":
 			messagebox.showerror("Error", "This game isn't supported by your platform yet.")
 		elif url.lower() == "non-static link":
@@ -179,24 +210,22 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		pass
 
 	def onCtrlC(self, event):
-		print("test")
-		item = self.treeview.item(self.treeview.focus())["values"]
-		pyperclip.copy("; ".join(item))
+		item = self.get_json_from_tree(True)
+		if item is not None:
+			pyperclip.copy("; ".join(item))
 		pass
 
 	def onCtrlD(self, event):
-		item = self.treeview.item(self.treeview.focus())["values"]
-		i = self.columns.index("Game")
-		gamename = item[i]
+		game_json = self.get_json_from_tree()
+		if game_json is None:
+			return
 		if self.platformToDownload.get() == "Automatic":
 			current_os = platform.system().lower()
 		else:
 			current_os = self.platformToDownload.get().lower()
 		if current_os != '':
-			for g in self.json_data:
-				if g["game"] == gamename:
-					url = g["download_link_{}".format(current_os)]
-		pyperclip.copy(url)
+			url = game_json["download_link_{}".format(current_os)]
+			pyperclip.copy(url)
 		pass
 	def help(self):
 		webbrowser.open("help.html", new=2)

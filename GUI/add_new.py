@@ -37,7 +37,7 @@ def game_exists(game_name, db=None):
 			return True
 	return False
 
-def add_new_game(json_to_add):
+def add_new_game(json_to_add, is_new):
 	"""
 		Adds a new game to the database, checking if a game named similarly is already present.
 		If a game is already in the database, raises a DatabaseError exception
@@ -46,7 +46,7 @@ def add_new_game(json_to_add):
 		raise DatabaseError("Some fields are left void. Please complete them and try again.")
 	with open('games.json', 'r') as jsonfile:
 		db = json.loads(jsonfile.read())
-	if game_exists(json_to_add["game"], db):
+	if game_exists(json_to_add["game"], db) and is_new:
 		raise DatabaseError("Game with that title and developer is already in DB")
 	json_list = []
 
@@ -59,9 +59,10 @@ def add_new_game(json_to_add):
 	os.rename("temp_json", "games.json")
 
 class AddNewGUI(tk.Toplevel):
-	def __init__(self, master = None):
+	def __init__(self, master = None, editdata=None):
 		super(AddNewGUI, self).__init__()
 		self.master = master
+		self.is_new = True
 		self.title = "Add a new Game"
 		self.animation = tk.StringVar()
 		self.developer = tk.StringVar()
@@ -77,6 +78,9 @@ class AddNewGUI(tk.Toplevel):
 		self.public_build = tk.StringVar()
 		self.setting = tk.StringVar()
 		self.visual_style = tk.StringVar()
+		if editdata is not None:
+			self.editmode(editdata)
+			self.is_new = False
 		self.config()
 		pass
 
@@ -150,6 +154,22 @@ class AddNewGUI(tk.Toplevel):
 		self.loopCheck()
 		pass
 
+	def editmode(self, editdata):
+		self.animation.set(editdata["animation"])
+		self.developer.set(editdata["developer"])
+		self.dl_android.set(editdata["download_link_android"])
+		self.dl_mac.set(editdata["download_link_mac"])
+		self.dl_windows.set(editdata["download_link_windows"])
+		self.dl_linux.set(editdata["download_link_linux"])
+		self.engine.set(editdata["engine"])
+		self.game.set(editdata["game"])
+		self.graphtreon.set(editdata["graphtreon"])
+		self.public_build.set(editdata["public_build"])
+		self.setting.set(editdata["setting"])
+		self.visual_style.set(editdata["visual_style"])
+		self.latest_version.set(editdata["latest_version"])
+		pass
+
 	def onFilepathButton(self):
 		directory = askdirectory()
 		self.filepath_var.set(directory)
@@ -172,8 +192,11 @@ class AddNewGUI(tk.Toplevel):
 		"download_link_android": check_url(self.dl_android.get()),\
 		"graphtreon": self.graphtreon.get()}
 		try:
-			add_new_game(json_to_add)
-			self.master.add_games_to_tree(json_to_add)
+			add_new_game(json_to_add, self.is_new)
+			if self.is_new:
+				self.master.add_games_to_tree(json_to_add)
+			else:
+				self.master.update_game_in_tree(json_to_add)
 		except DatabaseError as e:
 			messagebox.showerror('Error', message=e)
 		finally:

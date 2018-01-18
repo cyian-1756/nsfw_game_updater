@@ -23,6 +23,7 @@ I created a mediafire account for this app. It may or may not be useful, as of r
 - [x] implement barebones ui, with list of games
 - [x] implement games sorting based on columns
 - [x] implement add game to list window
+- [x] implement editing database from the UI
 
 # Required libraries :
 

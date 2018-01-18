@@ -42,6 +42,8 @@ def add_new_game(json_to_add):
 		Adds a new game to the database, checking if a game named similarly is already present.
 		If a game is already in the database, raises a DatabaseError exception
 	"""
+	if "" in json_to_add.items():
+		raise DatabaseError("Some fields are left void. Please complete them and try again.")
 	with open('games.json', 'r') as jsonfile:
 		db = json.loads(jsonfile.read())
 	if game_exists(json_to_add["game"], db):
@@ -171,6 +173,7 @@ class AddNewGUI(tk.Toplevel):
 		"graphtreon": self.graphtreon.get()}
 		try:
 			add_new_game(json_to_add)
+			self.master.add_games_to_tree(json_to_add)
 		except DatabaseError as e:
 			messagebox.showerror('Error', message=e)
 		finally:
@@ -179,9 +182,7 @@ class AddNewGUI(tk.Toplevel):
 		self.quit()
 
 	def quit(self):
-		global ADD_NEW_OPEN
-
-		ADD_NEW_OPEN = False
+		self.master.add_game_gui = None
 		self.destroy()
 		pass
 

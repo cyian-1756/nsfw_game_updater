@@ -2702,5 +2702,21 @@
         "public_build": "http://www.test.akabur.com/",
         "setting": "Fantasy",
         "visual_style": "2D anime"
+    },
+    {
+        "animation": "",
+        "developer": "",
+        "download_link_android": "",
+        "download_link_linux": "",
+        "download_link_mac": "",
+        "download_link_windows": "",
+        "engine": "",
+        "game": "",
+        "genre": "",
+        "graphtreon": "",
+        "latest_version": "",
+        "public_build": "",
+        "setting": "",
+        "visual_style": ""
     }
 ]

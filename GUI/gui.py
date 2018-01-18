@@ -12,6 +12,9 @@ import re
 import platform
 import os
 import mediafire
+import pyperclip
+import webbrowser
+
 
 from constants import *
 from options import OptionGUI
@@ -26,23 +29,37 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 	def __init__(self, master=None):
 		tk.Frame.__init__(self,master)
 		self.master = master
-		self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
+
 		self._jsonfile = open('games.json', 'r')
 		self.json_data = json.loads(self._jsonfile.read())
+		self._jsonfile.close()
 		self.downloaded_games = DOWNLOADED_GAMES
 		self.platformToDownload = tk.StringVar()
 		self.thread = None
+		self.options_gui = None
+		self.add_game_gui = None
+
+		#Other initialization methods
+		self.init_binds()
 		self.init_layout()
+		pass
+
+	def init_binds(self):
+		self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
+		self.master.bind('<Control-c>', self.onCtrlC)
+		self.master.bind('<Control-d>', self.onCtrlD)
 		pass
 
 	def init_layout(self):
 		self.menubar = tk.Menu(self)
 		filemenu = tk.Menu(self)
 		filemenu.add_command(label="Add New Game", command=self.add_new_game)
+		editmenu = tk.Menu(self)
 		self.menubar.add_cascade(label="File", menu=filemenu)
-		self.menubar.add_command(label="Edit", command=self.edit_menu)
+		self.menubar.add_cascade(label="Edit", menu=editmenu)
 		self.menubar.add_command(label="Options", command=self.open_options)
 		self.menubar.add_command(label="About", command=self.about)
+		self.menubar.add_command(label="Help", command=self.help)
 		self.master.config(menu=self.menubar)
 
 		self.init_treeview()
@@ -76,11 +93,11 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			tv.heading(col, command=lambda _col=col: \
 						treeview_sort_column(tv, col, not reverse))
 		for column in columns:
-			self.treeview.column(column, width=(int(GEOMETRY.split("x")[0])-0)//len(columns), anchor = tk.CENTER)
+			self.treeview.column(column, width=int(GEOMETRY.split("x")[0])//len(columns), anchor = tk.CENTER)
 			self.treeview.heading(column, text=column.capitalize(), command=lambda _col=column: \
 									treeview_sort_column(self.treeview, _col, False))
 		self.add_games_to_tree()
-		self.treeview.grid(row=0, column=0, columnspan=4)
+		self.treeview.grid(row=0, column=0, columnspan=3)
 
 	def add_games_to_tree(self, games=None):
 		if games is None:
@@ -151,28 +168,50 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			self.thread.start()
 		self.downloaded_games[gamename] = version
 		pass
+
 	def add_new_game(self):
-		global ADD_NEW_OPEN
-		if not ADD_NEW_OPEN:
-			ADD_NEW_OPEN = True
-			window = AddNewGUI(master=self.master)
-			window.mainloop()
+		if self.add_game_gui is None:
+			self.add_game_gui = AddNewGUI(master=self)
+			self.add_game_gui.mainloop()
 		pass
 
-	def edit_menu(self):
+	def onKeypressEvent(self, event):
+		pass
+
+	def onCtrlC(self, event):
+		print("test")
+		item = self.treeview.item(self.treeview.focus())["values"]
+		pyperclip.copy("; ".join(item))
+		pass
+
+	def onCtrlD(self, event):
+		item = self.treeview.item(self.treeview.focus())["values"]
+		i = self.columns.index("Game")
+		gamename = item[i]
+		if self.platformToDownload.get() == "Automatic":
+			current_os = platform.system().lower()
+		else:
+			current_os = self.platformToDownload.get().lower()
+		if current_os != '':
+			for g in self.json_data:
+				if g["game"] == gamename:
+					url = g["download_link_{}".format(current_os)]
+		pyperclip.copy(url)
+		pass
+	def help(self):
+		webbrowser.open("help.html", new=2)
 		pass
 
 	def open_options(self):
-		global OPTIONSOPEN
-		if not OPTIONSOPEN:
-			OPTIONSOPEN = True
-			options = OptionGUI(master=self.master)
-			options.mainloop()
+		if self.options_gui is None:
+			self.options_gui = OptionGUI(master=self)
+			self.options_gui.mainloop()
 		pass
 
 	def on_closing(self):
-		self._jsonfile.close()
 		config = configparser.ConfigParser()
+		config["DOWNLOAD_PATH"] = {}
+		config["DOWNLOAD_PATH"]["path"] = DOWNLOAD_PATH
 		config["GEOMETRY"] = {}
 		config["GEOMETRY"]["x"] = GEOMETRY.split("x")[0]
 		config["GEOMETRY"]["y"] = GEOMETRY.split("x")[1]

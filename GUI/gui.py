@@ -29,6 +29,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self._jsonfile = open('games.json', 'r')
 		self.json_data = json.loads(self._jsonfile.read())
 		self.downloaded_games = DOWNLOADED_GAMES
+		self.platformToDownload = tk.StringVar()
+		self.thread = None
 		self.init_layout()
 		pass
 
@@ -46,10 +48,13 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 
 		self.download_button = tk.Button(self, text="Download/Update", command=self.download_selected_game)
 		self.download_button.grid(row=1, column=0)
+		self.platformCombo = ttk.Combobox(self, textvariable = self.platformToDownload, state='readonly', values=("Automatic", "Windows", "Linux", "MacOS", "Android"))
+		self.platformCombo.grid(row=1, column=1)
+		self.platformCombo.current(0)
 		self.progress = 0
 		self.progressbar = ttk.Progressbar(self, mode="determinate", maximum=1024, \
 							length= int(GEOMETRY.split("x")[0])-self.download_button.winfo_width(), variable=self.progress)
-		self.progressbar.grid(row=1, column=1, columnspan=2)
+		self.progressbar.grid(row=1, column=2, columnspan=2)
 
 		self.custom_loop()
 		pass
@@ -74,7 +79,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			self.treeview.heading(column, text=column.capitalize(), command=lambda _col=column: \
 									treeview_sort_column(self.treeview, _col, False))
 		self.add_games_to_tree()
-		self.treeview.grid(row=0, column=0, columnspan=2)
+		self.treeview.grid(row=0, column=0, columnspan=4)
 
 	def add_games_to_tree(self, games=None):
 		if games is None:
@@ -91,8 +96,9 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		pass
 
 	def custom_loop(self):
-		global current_progress
-		self.progress = current_progress
+		if self.thread is not None:
+			if self.thread.is_alive:
+				self.progress = self.thread.progress
 		self.update_idletasks()
 		self.update()
 		self.after(5, self.custom_loop)
@@ -103,7 +109,10 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		item = self.treeview.item(self.treeview.focus())["values"]
 		i = self.columns.index("Game")
 		gamename = item[i]
-		current_os = platform.system().lower()
+		if self.platformToDownload.get() == "Automatic":
+			current_os = platform.system().lower()
+		else:
+			current_os = self.platformToDownload.get().lower()
 		if current_os != '':
 			for g in self.json_data:
 				if g["game"] == gamename:
@@ -132,10 +141,9 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 					name = url.split("/")[-1:][0]
 					size = 1024
 				chunksize = size//1024
-			thread = DownloadThread(r, chunksize, download, name)
-			thread.daemon = True
-			thread.start()
-			thread.join()
+			self.thread = DownloadThread(r, chunksize, download, name)
+			self.thread.daemon = True
+			self.thread.start()
 		self.downloaded_games[gamename] = version
 		pass
 	def add_new_game(self):

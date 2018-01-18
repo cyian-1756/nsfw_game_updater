@@ -9,7 +9,7 @@ import os
 import requests
 
 from constants import *
-
+from exceptions import *
 
 def load_json():
 	with open('games.json', 'r') as jsonfile:
@@ -28,14 +28,29 @@ def check_url(url):
 		return unshorten_url(url)
 	return url
 
-def game_exists(game_name):
-	with open('games.json', 'r') as jsonfile:
-		for sub_array in json.loads(jsonfile.read()):
-			if sub_array["game"].lower() == game_name.lower():
-				return True
+def game_exists(game_name, db=None):
+	if db is None:
+		with open('games.json', 'r') as jsonfile:
+			db = json.loads(jsonfile.read())
+	for sub_array in db:
+		if sub_array["game"].lower() == game_name.lower():
+			return True
 	return False
 
-def write_json_game_db(json_list):
+def add_new_game(json_to_add):
+	"""
+		Adds a new game to the database, checking if a game named similarly is already present.
+		If a game is already in the database, raises a DatabaseError exception
+	"""
+	with open('games.json', 'r') as jsonfile:
+		db = json.loads(jsonfile.read())
+	if game_exists(json_to_add["game"], db):
+		raise DatabaseError("Game with that title and developer is already in DB")
+	json_list = []
+
+	for sub_array in db:
+		json_list.append(sub_array)
+	json_list.append(json_to_add)
 	with open('temp_json', 'w', encoding="utf-8") as f:
 		 f.write(json.dumps(json_list, indent=4, sort_keys=True))
 	os.remove("games.json")
@@ -140,29 +155,25 @@ class AddNewGUI(tk.Toplevel):
 
 	def onOkButton(self):
 		json_to_add = {\
-		"game": self.game, \
-		"public_build": self.public_build,\
-		"setting":self.setting,\
-		"developer": self.developer,\
-		"engine": self.engine,\
-		"visual_style":self.visual_style,\
-		"genre":self.genre,\
-		"animation":self.has_animation,\
-		"latest_version":self.latest_version,\
-		"download_link_windows": check_url(self.download_link_windows),\
-		"download_link_mac": check_url(self.download_link_mac),\
-		"download_link_linux": check_url(self.download_link_linux),\
-		"download_link_android": check_url(self.download_link_android)}
-
-		if game_exists(json_to_add["game"]):
-			messagebox.showinfo('Information', message="Game with that title and developer is already in DB")
+		"game": self.game.get(), \
+		"public_build": self.public_build.get(),\
+		"setting":self.setting.get(),\
+		"developer": self.developer.get(),\
+		"engine": self.engine.get(),\
+		"visual_style":self.visual_style.get(),\
+		"genre":self.genre.get(),\
+		"animation":self.animation.get(),\
+		"latest_version":self.latest_version.get(),\
+		"download_link_windows": check_url(self.dl_windows.get()),\
+		"download_link_mac": check_url(self.dl_mac.get()),\
+		"download_link_linux": check_url(self.dl_linux.get()),\
+		"download_link_android": check_url(self.dl_android.get())}
+		try:
+			add_new_game(json_to_add)
+		except DatabaseError as e:
+			messagebox.showerror('Error', message=e)
+		finally:
 			self.quit()
-		json_list = []
-		for sub_array in load_json():
-			json_list.append(sub_array)
-		json_list.append(json_to_add)
-		write_json_game_db(json_list)
-		self.quit()
 	def onCancelButton(self):
 		self.quit()
 

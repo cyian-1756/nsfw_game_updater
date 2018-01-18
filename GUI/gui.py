@@ -11,6 +11,7 @@ import wget
 import platform
 
 from constants import *
+from options import OptionGUI
 
 ####FOR SOME REASON self.winfo_width() returns 1 even after self.update_idletasks() FIXME
 #For now, set the geometry manually
@@ -35,29 +36,24 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.menubar.add_command(label="About", command=self.about)
 		self.master.config(menu=self.menubar)
 
-		self.frame_viewer = tk.Frame(self.master, height=550)
-		self.frame_viewer.pack(side=tk.TOP)
-
 		self.init_treeview()
 		self.custom_loop()
 		#self.custom_loop()
-		self.frame_buttons = tk.Frame(self.master, height=50)
-		self.frame_buttons.pack(side=tk.BOTTOM)
 
-		self.download_button = tk.Button(self.frame_buttons, text="Download/Update", command=self.download_selected_game)
-		self.download_button.pack(side=tk.LEFT)
+		self.download_button = tk.Button(self, text="Download/Update", command=self.download_selected_game)
+		self.download_button.grid(row=1, column=0)
 		self.progress = 0
-		self.progressbar = ttk.Progressbar(self.frame_buttons, mode="determinate", \
+		self.progressbar = ttk.Progressbar(self, mode="determinate", \
 							length= int(GEOMETRY.split("x")[0])-self.download_button.winfo_width(), variable=self.progress)
-		self.progressbar.pack()
+		self.progressbar.grid(row=1, column=1, columnspan=2)
 		pass
 
 	def init_treeview(self):
 		self.columns = ("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Public Build", "Graphtreon")
 		columns = self.columns
-		self.treeview = ttk.Treeview(self.frame_viewer, columns = columns, show="headings")
-		self.scrollbar_y = ttk.Scrollbar(self.frame_viewer, command=self.treeview.yview)
-		self.scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
+		self.treeview = ttk.Treeview(self, columns = columns, show="headings", height=30)
+		#self.scrollbar_y = ttk.Scrollbar(self, command=self.treeview.yview)
+		#self.scrollbar_y.grid(row=0, column=1)
 		def treeview_sort_column(tv, col, reverse):
 			l = [(tv.set(k, col), k) for k in tv.get_children('')]
 			l.sort(reverse=reverse)
@@ -68,11 +64,11 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			tv.heading(col, command=lambda _col=col: \
 						treeview_sort_column(tv, col, not reverse))
 		for column in columns:
-			self.treeview.column(column, width=(int(GEOMETRY.split("x")[0])-self.scrollbar_y.winfo_width())//len(columns), anchor = tk.CENTER)
+			self.treeview.column(column, width=(int(GEOMETRY.split("x")[0])-0)//len(columns), anchor = tk.CENTER)
 			self.treeview.heading(column, text=column.capitalize(), command=lambda _col=column: \
 									treeview_sort_column(self.treeview, _col, False))
 		self.add_games_to_tree()
-		self.treeview.pack(side=tk.LEFT, fill=tk.Y)
+		self.treeview.grid(row=0, column=0, columnspan=2)
 
 	def add_games_to_tree(self, games=None):
 		if games is None:
@@ -102,12 +98,24 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			for g in self.json_data:
 				if g["game"] == gamename:
 					url = g[f"download_link_{current_os}"]
-		wget.download(url) #TODO : get progress to show in the progressbar, get folder selection to save file at the right place.
+		if DOWNLOAD_PATH=="" or DOWNLOAD_PATH=="/":
+			download = None
+		else:
+			download = DOWNLOAD_PATH
+		wget.download(url, out=download) #TODO : get progress to show in the progressbar, get folder selection to save file at the right place.
 		pass
 	def file_menu():
 		pass
 
 	def edit_menu():
+		pass
+
+	def open_options(self):
+		global OPTIONSOPEN
+		if not OPTIONSOPEN:
+			OPTIONSOPEN = True
+			options = OptionGUI(master=self.master)
+			options.mainloop()
 		pass
 
 	def on_closing(self):
@@ -128,9 +136,6 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		"""
 		messagebox.showinfo("About", message)
 		pass
-
-	def open_options(self):
-		pass
 	pass
 
 
@@ -139,5 +144,5 @@ if __name__ == "__main__":
 	root.title("NSFW Game Manager")
 	root.geometry(GEOMETRY)
 	gui = GUI(root)
-	gui.pack()
+	gui.grid(row=0,column=0)
 	gui.mainloop()

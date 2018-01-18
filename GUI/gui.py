@@ -11,6 +11,7 @@ import requests
 import re
 import platform
 import os
+import mediafire
 
 from constants import *
 from options import OptionGUI
@@ -105,7 +106,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 
 	def download_selected_game(self): #It would be simpler if each game had its own ID, as well as to version track later on.
 		def can_download(link):
-			return "mediafire.com" not in link and "mega.nz" not in link and "itch.io" not in link
+			return "mega.nz" not in link and "itch.io" not in link
 		item = self.treeview.item(self.treeview.focus())["values"]
 		i = self.columns.index("Game")
 		gamename = item[i]
@@ -131,6 +132,10 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		elif url == "":
 			messagebox.showerror("Error", "No link found in the database for this game.")
 		else:
+			if "mediafire" in url:
+				api = mediafire.MediaFireApi()
+				response = api.file_get_links(url.split("/")[url.split('/').index("file")+1])
+				url = response['links'][0]['normal_download']
 			r = requests.get(url, stream=True)
 			if r.status_code == 200:
 				try:

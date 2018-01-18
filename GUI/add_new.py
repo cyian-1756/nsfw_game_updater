@@ -167,7 +167,8 @@ class AddNewGUI(tk.Toplevel):
 		"download_link_windows": check_url(self.dl_windows.get()),\
 		"download_link_mac": check_url(self.dl_mac.get()),\
 		"download_link_linux": check_url(self.dl_linux.get()),\
-		"download_link_android": check_url(self.dl_android.get())}
+		"download_link_android": check_url(self.dl_android.get()),\
+		"graphtreon": self.graphtreon.get()}
 		try:
 			add_new_game(json_to_add)
 		except DatabaseError as e:

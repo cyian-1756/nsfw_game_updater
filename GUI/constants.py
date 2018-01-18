@@ -6,7 +6,10 @@ OPTIONSOPEN = False
 config = configparser.ConfigParser()
 config.read("config.cfg")
 GEOMETRY = config["GEOMETRY"]["x"] + "x" + config["GEOMETRY"]["y"]
-
+try:
+	DOWNLOADED_GAMES = config["DOWNLOADED_GAMES"]
+except KeyError:
+	DOWNLOADED_GAMES = {}
 
 #####---------GRAPHICS----------#######
 

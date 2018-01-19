@@ -10,7 +10,7 @@ class OptionGUI(tk.Toplevel):
 	def __init__(self, master = None):
 		super(OptionGUI, self).__init__()
 		self.master = master
-		self.master.title = "Options"
+		self.title = "Options"
 		self.resolution_var = tk.StringVar()
 		self.resolution_var.set(GEOMETRY)
 		self.filepath_var = tk.StringVar()

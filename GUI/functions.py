@@ -21,6 +21,9 @@ def in_database(link):
 		print("Game doesn't support this OS")
 
 def checkversion(version1, version2):
+	regex = re.compile(r"([\d.]+)")
+	assert regex.match(version1), "Args 'version1' doesn't match the standardized version format (x.x.x.x)"
+	assert regex.match(version2), "Args 'version2' doesn't match the standardized version format (x.x.x.x)"
 	version1 = version1.split(".")
 	version2 = version2.split(".")
 	assert len(version1)==len(version2), "Version numbers should have the same format (number of sub-versions)"

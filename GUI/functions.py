@@ -1,6 +1,7 @@
 import json
 import requests
 import re
+from distutils.version import StrictVersion
 
 def can_download(link):
 	return "mediafire.com" not in link and "mega.nz" not in link and "itch.io" not in link
@@ -21,13 +22,11 @@ def in_database(link):
 		print("Game doesn't support this OS")
 
 def checkversion(version1, version2):
+	"""
+		checks if version1 > version2, returns True if it is.
+		Raises AssertionError if the versions supplied don't match the standardized format (x.y.z)
+	"""
 	regex = re.compile(r"([\d.]+)")
 	assert regex.match(version1) is not None, "Args 'version1' doesn't match the standardized version format (x.x.x.x)"
 	assert regex.match(version2) is not None, "Args 'version2' doesn't match the standardized version format (x.x.x.x)"
-	version1 = version1.split(".")
-	version2 = version2.split(".")
-	assert len(version1)==len(version2), "Version numbers should have the same format (number of sub-versions)"
-	tmp = []
-	for i in range(len(version1)):
-		tmp.append(int(version1[i])>int(version2[i]))
-	return tmp.count(True)>tmp.count(False)
+	return StrictVersion(version1)>StrictVersion(version2)

@@ -17,6 +17,7 @@ import webbrowser
 
 
 from constants import *
+from functions import *
 from options import OptionGUI
 from download_thread import *
 from add_new import AddNewGUI
@@ -33,7 +34,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self._jsonfile = open('games.json', 'r')
 		self.json_data = json.loads(self._jsonfile.read())
 		self._jsonfile.close()
-		self.downloaded_games = DOWNLOADED_GAMES
+		self.downloaded_games = {} if DOWNLOADED_GAMES is None else DOWNLOADED_GAMES
 		self.platformToDownload = tk.StringVar()
 		self.thread = None
 		self.options_gui = None
@@ -48,15 +49,19 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
 		self.master.bind('<Control-c>', self.onCtrlC)
 		self.master.bind('<Control-d>', self.onCtrlD)
+		self.master.bind('<Control-w>', self.mark_as_downloaded)
 		pass
 
 	def init_layout(self):
 		self.menubar = tk.Menu(self)
 		filemenu = tk.Menu(self)
-		filemenu.add_command(label="Add New Game", command=self.add_new_game)
 		filemenu.add_command(label='Copy Link to Clipboard', command=self.onCtrlD)
 		filemenu.add_command(label='Copy Data to Clipboard', command=self.onCtrlC)
+		filemenu.add_command(label='Mark as Downloaded', command=self.mark_as_downloaded)
+		filemenu.add_separator()
+		filemenu.add_command(label='Check for updates', command=self.check_update)
 		editmenu = tk.Menu(self)
+		editmenu.add_command(label="Add New Game", command=self.add_new_game)
 		editmenu.add_command(label="Edit Selected Entry", command=self.edit_current_game)
 		self.menubar.add_cascade(label="File", menu=filemenu)
 		self.menubar.add_cascade(label="Edit", menu=editmenu)
@@ -101,6 +106,29 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 									treeview_sort_column(self.treeview, _col, False))
 		self.add_games_to_tree()
 		self.treeview.grid(row=0, column=0, columnspan=3)
+		self.treeview.tag_configure('has_update', background="red")
+
+	def check_update(self, game=None):
+		nb = 0
+		for item in self.treeview.get_children():
+			if game is None:
+				game = self.get_json_from_tree(item_to_get=self.treeview.item(item))
+			if game["game"] in self.downloaded_games.keys():
+				if checkversion(game["latest_version"], DOWNLOADED_GAMES[game["game"]]):
+					nb += 1
+					self.treeview.item(item, tags=('has_update'))
+		if nb == 0:
+			messagebox.showinfo("Information", "No updates found")
+		elif nb == 1:
+			messagebox.showinfo("Information", "1 update found")
+		else:
+			messagebox.showinfo("Information", "{} updates found".format(nb))
+
+	def mark_as_downloaded(self):
+		game_json = self.get_json_from_tree()
+		if game_json is not None:
+			self.downloaded_games[game_json["game"]] = game_json["version"]
+		pass
 
 	def add_games_to_tree(self, games=None):
 		if games is None:
@@ -140,9 +168,12 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.update_idletasks()
 		self.update()
 		self.after(5, self.custom_loop)
-	def get_json_from_tree(self, return_item=False):
+	def get_json_from_tree(self, return_item=False, item_to_get=None):
 		try:
-			item = self.treeview.item(self.treeview.focus())["values"]
+			if item_to_get is None:
+				item = self.treeview.item(self.treeview.focus())["values"]
+			else:
+				item = item_to_get["values"]
 			if return_item:
 				return item
 			i = self.columns.index("Game")
@@ -160,6 +191,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		game_json = self.get_json_from_tree()
 		if game_json is None:
 			return
+		item = self.treeview.item(self.treeview.focus())
+		itemtags = item["tags"]
 		if self.platformToDownload.get() == "Automatic":
 			current_os = platform.system().lower()
 		else:
@@ -180,24 +213,27 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		elif url == "":
 			messagebox.showerror("Error", "No link found in the database for this game.")
 		else:
-			if "mediafire" in url:
-				api = mediafire.MediaFireApi()
-				response = api.file_get_links(url.split("/")[url.split('/').index("file")+1])
-				url = response['links'][0]['normal_download']
-			r = requests.get(url, stream=True)
-			if r.status_code == 200:
-				try:
-					d = r.headers['content-disposition']
-					name = re.findall("filename=(.+)", d)[0]
-					size = int(r.headers['content-length'])
-				except KeyError:
-					name = url.split("/")[-1:][0]
-					size = 1024
-				chunksize = size//1024
-			self.thread = DownloadThread(r, chunksize, download, name)
-			self.thread.daemon = True
-			self.thread.start()
-		self.downloaded_games[gamename] = version
+			if "has_update" in itemtags or game_json["game"] not in self.downloaded_games:
+				if "has_update" in itemtags:
+					self.treeview.item(item, tags=())
+				if "mediafire" in url:
+					api = mediafire.MediaFireApi()
+					response = api.file_get_links(url.split("/")[url.split('/').index("file")+1])
+					url = response['links'][0]['normal_download']
+				r = requests.get(url, stream=True)
+				if r.status_code == 200:
+					try:
+						d = r.headers['content-disposition']
+						name = re.findall("filename=(.+)", d)[0]
+						size = int(r.headers['content-length'])
+					except KeyError:
+						name = url.split("/")[-1:][0]
+						size = 1024
+					chunksize = size//1024
+				self.thread = DownloadThread(r, chunksize, download, name)
+				self.thread.daemon = True
+				self.thread.start()
+		self.downloaded_games[game_json["game"]] = version
 		pass
 
 	def add_new_game(self):

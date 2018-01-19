@@ -11,9 +11,11 @@ I created a mediafire account for this app. It may or may not be useful, as of r
 
 # TO DO List :
 
+- [ ] implement unzipping the downloaded files if it is an archive.
+- [ ] add a 'View in explorer' command
 - [ ] implement mega.nz downloading
 - [x] implement auto-refresh of the game list when you add a new game
-- [ ] implement updating of games
+- [x] implement updating of games
 - [x] fix toplevel windows not showing up the second time you click on the button (problem with global vars ??)
 - [x] fix toplevel windows not retaining information on reopening
 - [x] change geometry based on selected resolution in options window
@@ -24,6 +26,8 @@ I created a mediafire account for this app. It may or may not be useful, as of r
 - [x] implement games sorting based on columns
 - [x] implement add game to list window
 - [x] implement editing database from the UI
+- [x] implement checking for update
+
 
 # Required libraries :
 

@@ -19,3 +19,12 @@ def in_database(link):
 		print("No game with that name found")
 	elif link == "Doesn’t support":
 		print("Game doesn't support this OS")
+
+def checkversion(version1, version2):
+	version1 = version1.split(".")
+	version2 = version2.split(".")
+	assert len(version1)==len(version2), "Version numbers should have the same format (number of sub-versions)"
+	tmp = []
+	for i in range(len(version1)):
+		tmp.append(int(version1[i])>int(version2[i]))
+	return tmp.count(True)>tmp.count(False)

@@ -23,15 +23,15 @@ Example: `python3 main.py --download --game-name "trials in tainted space" --os 
 
 ## TODO
 
-[ ] Add download links for all games currently in the list
+- [ ] Add download links for all games currently in the list
 
-[ ] Add the latest version of all download links in the list
+- [ ] Add the latest version of all download links in the list
 
-[ ] Write a web scraper to check if a new version of the game is out
+- [ ] Write a web scraper to check if a new version of the game is out
 
-[x] Update main.py to allow for downloading games without using outside tools where ever possible
+- [x] Update main.py to allow for downloading games without using outside tools where ever possible
 
-[x] Add GUI
+- [x] Add GUI
 
 ## GUI (Graphical User Interface) :
 
@@ -49,16 +49,17 @@ The gui has been made using the Tk/Tcl wrapper tkinter.
 - Sorting games by genre, developer, etc.
 - A super duper ugly help page
 - Options to set the window size, the download path etc
+- Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database
+- Advanced/Simple view of the tree (to show only the relevant info)
 
 ### Planned :
 
-- Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database
+- Improve reddit integration to automatically enter the info into the database
 - Syncing every user's databases
 - Scraping games' websites to look for updates.
 - Auto-Updating the database
 - Improved Help page
 - Game rating (each user may rate the game, shown rating will be the average rating)
-- Advanced/Simple view of the tree (to show only the relevant info)
 - Automatic unzipping/install of the games to the specified installation directory
 - Patreon integration to pledge from the app itself
 - itch.io integration to buy/donate from the app itself

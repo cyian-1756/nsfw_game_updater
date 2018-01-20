@@ -89,7 +89,12 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		pass
 
 	def init_treeview(self):
-		self.columns = ("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Public Build", "Graphtreon")
+		print(ADVANCED_VIEW)
+		if ADVANCED_VIEW:
+			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Public Build", "Graphtreon")
+		else:
+			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation")
+		self.columns = columns
 		columns = self.columns
 		self.treeview = ttk.Treeview(self, columns = columns, show="headings", height=30)
 		#self.scrollbar_y = ttk.Scrollbar(self, command=self.treeview.yview)
@@ -284,11 +289,10 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 
 	def on_closing(self):
 		config = configparser.ConfigParser()
-		config["DOWNLOAD_PATH"] = {}
-		config["DOWNLOAD_PATH"]["path"] = DOWNLOAD_PATH
-		config["GEOMETRY"] = {}
-		config["GEOMETRY"]["x"] = GEOMETRY.split("x")[0]
-		config["GEOMETRY"]["y"] = GEOMETRY.split("x")[1]
+		config["OPTIONS"] = {}
+		config["OPTIONS"]["DOWNLOAD_PATH"] = DOWNLOAD_PATH
+		config["OPTIONS"]["GEOMETRY"] = GEOMETRY
+		config["OPTIONS"]["ADVANCED_VIEW"] = str(ADVANCED_VIEW)
 		config["DOWNLOADED_GAMES"] = self.downloaded_games
 		with open('config.cfg', 'w') as configfile:
 			config.write(configfile)

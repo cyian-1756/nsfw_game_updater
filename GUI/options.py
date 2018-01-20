@@ -10,20 +10,20 @@ class OptionGUI(tk.Toplevel):
 	def __init__(self, master = None):
 		super(OptionGUI, self).__init__()
 		self.master = master
-		self.master.title = "Options"
+		self.title = "Options"
+		self.resolution_var = tk.StringVar()
+		self.resolution_var.set(GEOMETRY)
+		self.filepath_var = tk.StringVar()
+		self.filepath_var.set(DOWNLOAD_PATH)
 		self.config()
 		pass
 
 	def config(self):
-		self.resolution_var = tk.StringVar()
-		self.resolution_var.set(GEOMETRY)
 		resolutions = ('800x600', '1024x768', '1280x960', '1280x720', '1600x900', '1920x1080', '1366x768')
 		self.combo_resolution = ttk.Combobox(self, textvariable = self.resolution_var, state='readonly', values=resolutions)
 		self.combo_resolution.grid(column=1, row=0)
 		tk.Label(self, text="Resolution :").grid(row=0, column=0)
 
-		self.filepath_var = tk.StringVar()
-		self.filepath_var.set(DOWNLOAD_PATH)
 		self.filepath_entry = tk.Entry(self, textvariable=self.filepath_var)
 		self.filepath_entry.grid(column=1, row=1)
 		folderimg = tk.BitmapImage(data=FOLDER_ICON.split('-')[0], maskdata=FOLDER_ICON.split('-')[1], background="white")
@@ -45,18 +45,17 @@ class OptionGUI(tk.Toplevel):
 		pass
 
 	def onOkButton(self):
-		global OPTIONSOPEN
-
 		global GEOMETRY
 		global DOWNLOAD_PATH
 		GEOMETRY = self.resolution_var.get()
 		DOWNLOAD_PATH = self.filepath_var.get()
 
-		OPTIONSOPEN = False
-		self.destroy()
+		self.master.master.geometry(self.resolution_var.get())
+		for column in self.master.columns:
+			self.master.treeview.column(column, width=int(GEOMETRY.split("x")[0])//len(self.master.columns), anchor = tk.CENTER)
+		self.onCancelButton()
 	def onCancelButton(self):
-		global OPTIONSOPEN
-		OPTIONSOPEN = False
+		self.master.options_gui = None
 		self.destroy()
 
 	def loopCheck(self):

@@ -1,6 +1,33 @@
 # NSFW Game Manager GUI
 
 This GUI has been made by Dogeek (http://github.com/Dogeek) based on cyian-1756's CLI.
+The GUI has been made using the Tk/Tcl wrapper for python, tkinter.
+
+## Features :
+
+### Implemented :
+- Adding new games to the database
+- Downloading and Updating games
+- Editing games in the database
+- Copying the links to the clipboard
+- Copying the whole line's data to the clipboard
+- check for game updates
+- Sorting games by genre, developer, etc.
+- A super duper ugly help page
+- Options to set the window size, the download path etc
+
+### Planned :
+
+- Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database
+- Syncing every user's databases
+- Scraping games' websites to look for updates.
+- Auto-Updating the database
+- Improved Help page
+- Game rating (each user may rate the game, shown rating will be the average rating)
+- Advanced/Simple view of the tree (to show only the relevant info)
+- Automatic unzipping/install of the games to the specified installation directory
+- Patreon integration to pledge from the app itself
+- itch.io integration to buy/donate from the app itself
 
 # Mediafire functionnality
 
@@ -44,7 +71,7 @@ I created a mediafire account for this app. It may or may not be useful, as of r
 - webbrowser
 - threading
 
-## Additionnal libraries :
+## Additionnal, third-party libraries :
 
 - pyperclip
 - mediafire

@@ -21,6 +21,7 @@ from functions import *
 from options import OptionGUI
 from download_thread import *
 from add_new import AddNewGUI
+from get_from_reddit import GetFromRedditGUI
 
 ####FOR SOME REASON self.winfo_width() returns 1 even after self.update_idletasks() FIXME
 #For now, set the geometry manually
@@ -39,8 +40,9 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.thread = None
 		self.options_gui = None
 		self.add_game_gui = None
+		self.reddit_gui = None
 
-		#Other initialization methods
+		#Other initialization methodsa
 		self.init_binds()
 		self.init_layout()
 		pass
@@ -63,6 +65,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		editmenu = tk.Menu(self)
 		editmenu.add_command(label="Add New Game", command=self.add_new_game)
 		editmenu.add_command(label="Edit Selected Entry", command=self.edit_current_game)
+		editmenu.add_command(label="Open Reddit Scraper", command=self.open_reddit_scraper)
 		self.menubar.add_cascade(label="File", menu=filemenu)
 		self.menubar.add_cascade(label="Edit", menu=editmenu)
 		self.menubar.add_command(label="Options", command=self.open_options)
@@ -265,6 +268,12 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		pass
 	def help(self):
 		webbrowser.open("help.html", new=2)
+		pass
+
+	def open_reddit_scraper(self):
+		if self.reddit_gui is None:
+			self.reddit_gui = GetFromRedditGUI(master=self)
+			self.reddit_gui.mainloop()
 		pass
 
 	def open_options(self):

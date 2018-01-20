@@ -7,9 +7,8 @@ class RedditScraper():
 
 	def get_releases(self, limit=10):
 		releases = []
-		for submission in reddit.subreddit(self.subreddit).hot(limit=limit):
-			if "release" in [s.lower() for s in submission.flair.choices()]:
-				releases.append(submission)
+		for submission in self.reddit.subreddit(self.subreddit).search('flair:"release"', limit=limit):
+			releases.append(submission)
 		return releases
 
 	def from_submission_to_json(self, submission):

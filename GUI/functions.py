@@ -2,9 +2,10 @@ import json
 import requests
 import re
 from distutils.version import StrictVersion
+from bs4 import BeautifulSoup
 
 def can_download(link):
-	return "mediafire.com" not in link and "mega.nz" not in link and "itch.io" not in link
+	return "mega.nz" not in link and "itch.io" not in link
 
 def get_game_download_link(gamename, os):
 	found_game = False
@@ -30,3 +31,15 @@ def checkversion(version1, version2):
 	assert regex.match(version1) is not None, "Args 'version1' doesn't match the standardized version format (x.x.x.x)"
 	assert regex.match(version2) is not None, "Args 'version2' doesn't match the standardized version format (x.x.x.x)"
 	return StrictVersion(version1)>StrictVersion(version2)
+
+def get_patreon_link(graphtreon_link):
+	"""
+		returns a patreon link from a graphtreon link.
+
+		Prototype : str::get_patreon_link(str::graphtreon_link)
+	"""
+	page = requests.get(graphtreon_link)
+	soup = BeautifulSoup(page.content, "html.parser")
+	for link in soup.find_all('a'):
+		if str(link.get('href')).startswith("https://www.patreon.com/user?u="):
+			return link.get('href')

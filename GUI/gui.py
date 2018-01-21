@@ -15,7 +15,7 @@ import mediafire
 import pyperclip
 import webbrowser
 import urllib.request
-
+from bs4 import BeautifulSoup
 
 from constants import *
 from functions import *
@@ -57,6 +57,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.master.bind('<Control-c>', self.onCtrlC)
 		self.master.bind('<Control-d>', self.onCtrlD)
 		self.master.bind('<Control-w>', self.mark_as_downloaded)
+		self.master.bind('<Control-q>', self.go_to_patreon)
 		self.master.bind('<Button-3>', self.display_contextual)
 		pass
 
@@ -65,6 +66,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.contextual_menu.add_command(label='Copy Link to Clipboard', command=self.onCtrlD)
 		self.contextual_menu.add_command(label='Copy Data to Clipboard', command=self.onCtrlC)
 		self.contextual_menu.add_command(label='Visit Graphtreon Page', command=self.visit_graphtreon)
+		self.contextual_menu.add_command(label='Visit Patreon Page', command=self.go_to_patreon)
 		self.contextual_menu.add_command(label='Mark as Downloaded', command=self.mark_as_downloaded)
 		self.contextual_menu.add_separator()
 		self.contextual_menu.add_command(label="Edit Entry", command=self.edit_current_game)
@@ -75,6 +77,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		filemenu.add_command(label='Copy Link to Clipboard', command=self.onCtrlD)
 		filemenu.add_command(label='Copy Data to Clipboard', command=self.onCtrlC)
 		filemenu.add_command(label='Mark as Downloaded', command=self.mark_as_downloaded)
+		filemenu.add_command(label='Visit Patreon Page', command=self.go_to_patreon)
 		filemenu.add_separator()
 		filemenu.add_command(label='Check for updates', command=self.check_update)
 		editmenu = tk.Menu(self)
@@ -243,7 +246,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		else:
 			download = DOWNLOAD_PATH
 		if not can_download(url):
-			messagebox.showerror("Error", "NSFW Game Manager doesn't support downloading from mega or itch.io yet.")
+			webbrowser.open(url, new=2)
+			#messagebox.showerror("Error", "NSFW Game Manager doesn't support downloading from mega or itch.io yet.")
 		elif url == "-":
 			messagebox.showerror("Error", "This game isn't supported by your platform yet.")
 		elif url.lower() == "non-static link":
@@ -301,6 +305,14 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			url = game_json["download_link_{}".format(current_os)]
 			pyperclip.copy(url)
 		pass
+
+	def go_to_patreon(self):
+		game_json = self.get_json_from_tree()
+		page = requests.get(game_json["graphtreon"])
+		soup = BeautifulSoup(page.content, "html.parser")
+		for link in soup.find_all('a'):
+			if str(link.get('href')).startswith("https://www.patreon.com/user?u="):
+				webbrowser.open(link.get('href'), new=2)
 	def help(self):
 		webbrowser.open("help.html", new=2)
 		pass

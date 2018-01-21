@@ -10,7 +10,7 @@ virtualenv/
 __pycache__/
 *.py[cod]
 *$py.class
-
+!credentials.pyc
 # C extensions
 *.so
 

@@ -10,6 +10,7 @@ import requests
 from urllib.request import urlopen
 import ftplib
 
+import credentials
 from constants import *
 from exceptions import *
 
@@ -57,7 +58,7 @@ def add_new_game(json_to_add, is_new):
 	json_list.append(json_to_add)
 	with open('temp_json', 'w', encoding="utf-8") as f:
 		 f.write(json.dumps(json_list, indent=4, sort_keys=True))
-		 ftp = ftplib.FTP("legtux.org", "dogeek", "uy7qa9e")
+		 ftp = ftplib.FTP("legtux.org", credentials.username, credentials.password)
 		 ftp.storbinary("STOR games.json", f)
 	os.remove("temp_json")
 

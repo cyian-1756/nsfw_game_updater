@@ -7,7 +7,7 @@ os.environ['TCL_LIBRARY'] = r'D:\Softwares\python-362-x86\tcl\tcl8.6'
 os.environ['TK_LIBRARY'] = r'D:\Softwares\python-362-x86\tcl\tk8.6'
 # Dependencies are automatically detected, but it might need fine tuning.
 build_exe_options = {"packages": ["os", "sys", "tkinter", "time", "configparser", "json", "requests", "re", "platform", "mediafire", "pyperclip", "webbrowser", "praw", "threading"]\
-					, "include_files":["help.html", "readme.md", "config.cfg", "games.json"]}
+					, "include_files":["help.html", "readme.md", "tcl86t.dll", "tk86t.dll"]}
 
 # GUI applications require a different base on Windows (the default is for a
 # console application).

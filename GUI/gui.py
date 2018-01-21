@@ -26,7 +26,6 @@ from get_from_reddit import GetFromRedditGUI
 
 ####FOR SOME REASON self.winfo_width() returns 1 even after self.update_idletasks() FIXME
 #For now, set the geometry manually
-GEOMETRY = "1920x1080"
 
 class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
 	def __init__(self, master=None, remotejson=True):

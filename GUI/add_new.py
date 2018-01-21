@@ -7,12 +7,14 @@ import tkinter.messagebox as messagebox
 import json
 import os
 import requests
+from urllib.request import urlopen
+import ftplib
 
 from constants import *
 from exceptions import *
 
 def load_json():
-	with open('games.json', 'r') as jsonfile:
+	with open('games.json') as jsonfile:
 		return json.loads(jsonfile.read())
 
 # Check if this url was shortened
@@ -30,7 +32,7 @@ def check_url(url):
 
 def game_exists(game_name, db=None):
 	if db is None:
-		with open('games.json', 'r') as jsonfile:
+		with urlopen('http://dogeek.legtux.org/games.json') as jsonfile:
 			db = json.loads(jsonfile.read())
 	for sub_array in db:
 		if sub_array["game"].lower() == game_name.lower():
@@ -44,7 +46,7 @@ def add_new_game(json_to_add, is_new):
 	"""
 	if "" in json_to_add.items():
 		raise DatabaseError("Some fields are left void. Please complete them and try again.")
-	with open('games.json', 'r') as jsonfile:
+	with urlopen('http://dogeek.legtux.org/games.json') as jsonfile:
 		db = json.loads(jsonfile.read())
 	if game_exists(json_to_add["game"], db) and is_new:
 		raise DatabaseError("Game with that title and developer is already in DB")
@@ -55,8 +57,10 @@ def add_new_game(json_to_add, is_new):
 	json_list.append(json_to_add)
 	with open('temp_json', 'w', encoding="utf-8") as f:
 		 f.write(json.dumps(json_list, indent=4, sort_keys=True))
-	os.remove("games.json")
-	os.rename("temp_json", "games.json")
+		 ftp = ftplib.FTP("legtux.org", "dogeek", "uy7qa9e")
+		 ftp.storbinary("STOR games.json", f)
+	os.remove("temp_json")
+
 
 class AddNewGUI(tk.Toplevel):
 	def __init__(self, master = None, editdata=None):

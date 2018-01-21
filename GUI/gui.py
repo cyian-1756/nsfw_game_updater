@@ -14,6 +14,7 @@ import os
 import mediafire
 import pyperclip
 import webbrowser
+import urllib.request
 
 
 from constants import *
@@ -28,11 +29,14 @@ from get_from_reddit import GetFromRedditGUI
 GEOMETRY = "1920x1080"
 
 class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
-	def __init__(self, master=None):
+	def __init__(self, master=None, remotejson=True):
 		tk.Frame.__init__(self,master)
 		self.master = master
 
-		self._jsonfile = open('games.json', 'r')
+		if remotejson:
+			self._jsonfile = urllib.request.urlopen("http://dogeek.legtux.org/games.json")
+		else:
+			self._jsonfile = open('games.json', 'r')
 		self.json_data = json.loads(self._jsonfile.read())
 		self._jsonfile.close()
 		self.downloaded_games = {} if DOWNLOADED_GAMES is None else DOWNLOADED_GAMES
@@ -42,9 +46,10 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.add_game_gui = None
 		self.reddit_gui = None
 
-		#Other initialization methodsa
-		self.init_binds()
+		#Other initialization methods
+		self.init_contextual()
 		self.init_layout()
+		self.init_binds()
 		pass
 
 	def init_binds(self):
@@ -52,7 +57,17 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.master.bind('<Control-c>', self.onCtrlC)
 		self.master.bind('<Control-d>', self.onCtrlD)
 		self.master.bind('<Control-w>', self.mark_as_downloaded)
+		self.master.bind('<Button-3>', self.display_contextual)
 		pass
+
+	def init_contextual(self):
+		self.contextual_menu = tk.Menu(self, tearoff=0)
+		self.contextual_menu.add_command(label='Copy Link to Clipboard', command=self.onCtrlD)
+		self.contextual_menu.add_command(label='Copy Data to Clipboard', command=self.onCtrlC)
+		self.contextual_menu.add_command(label='Visit Graphtreon Page', command=self.visit_graphtreon)
+		self.contextual_menu.add_command(label='Mark as Downloaded', command=self.mark_as_downloaded)
+		self.contextual_menu.add_separator()
+		self.contextual_menu.add_command(label="Edit Entry", command=self.edit_current_game)
 
 	def init_layout(self):
 		self.menubar = tk.Menu(self)
@@ -89,7 +104,6 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		pass
 
 	def init_treeview(self):
-		print(ADVANCED_VIEW)
 		if ADVANCED_VIEW:
 			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Public Build", "Graphtreon")
 		else:
@@ -116,6 +130,16 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.treeview.grid(row=0, column=0, columnspan=3)
 		self.treeview.tag_configure('has_update', background="red")
 
+	def display_contextual(self, event):
+		try:
+			iid = self.treeview.identify_row(event.y)
+			if iid:
+				# mouse pointer over item
+				self.treeview.selection_set(iid)
+			self.contextual_menu.tk_popup(event.x_root, event.y_root, 0)
+		finally:
+			# make sure to release the grab (Tk 8.0a1 only)
+			self.contextual_menu.grab_release()
 	def check_update(self, game=None):
 		nb = 0
 		for item in self.treeview.get_children():
@@ -167,6 +191,12 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			if data is not None:
 				self.add_game_gui = AddNewGUI(master=self, editdata=data)
 				self.add_game_gui.mainloop()
+		pass
+
+	def visit_graphtreon(self):
+		game_json = self.get_json_from_tree()
+		if game_json is not None:
+			webbrowser.open(game_json["graphtreon"], new=2)
 		pass
 
 	def custom_loop(self):
@@ -253,13 +283,13 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 	def onKeypressEvent(self, event):
 		pass
 
-	def onCtrlC(self, event):
+	def onCtrlC(self, event=None):
 		item = self.get_json_from_tree(True)
 		if item is not None:
 			pyperclip.copy("; ".join(item))
 		pass
 
-	def onCtrlD(self, event):
+	def onCtrlD(self, event=None):
 		game_json = self.get_json_from_tree()
 		if game_json is None:
 			return

@@ -70,6 +70,8 @@ I created a mediafire account for this app. It may or may not be useful, as of r
 - sys
 - webbrowser
 - threading
+- urllib
+- ftplib
 
 ## Additionnal, third-party libraries :
 

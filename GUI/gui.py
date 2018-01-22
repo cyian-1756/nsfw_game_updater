@@ -16,6 +16,8 @@ import pyperclip
 import webbrowser
 import urllib.request
 from bs4 import BeautifulSoup
+import subprocess
+import zipfile
 
 from constants import *
 from functions import *
@@ -44,13 +46,12 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.options_gui = None
 		self.add_game_gui = None
 		self.reddit_gui = None
-
 		#Other initialization methods
 		self.init_contextual()
 		self.init_layout()
 		self.init_binds()
 		pass
-
+#INIT METHODS
 	def init_binds(self):
 		self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
 		self.master.bind('<Control-c>', self.onCtrlC)
@@ -79,6 +80,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		filemenu.add_command(label='Visit Patreon Page', command=self.go_to_patreon)
 		filemenu.add_separator()
 		filemenu.add_command(label='Check for updates', command=self.check_update)
+		filemenu.add_separator()
+		filemenu.add_command(label='Open Download folder', command=self.open_explorer)
 		editmenu = tk.Menu(self)
 		editmenu.add_command(label="Add New Game", command=self.add_new_game)
 		editmenu.add_command(label="Edit Selected Entry", command=self.edit_current_game)
@@ -98,9 +101,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.platformCombo.grid(row=1, column=1)
 		self.platformCombo.current(0)
 		self.progress = 0
-		self.progressbar = ttk.Progressbar(self, mode="determinate", maximum=1024, \
-							length= int(GEOMETRY.split("x")[0])-self.download_button.winfo_width(), variable=self.progress)
-		self.progressbar.grid(row=1, column=2, columnspan=2)
+		self.progressbar = ttk.Progressbar(self, mode="determinate", maximum=1024, variable=self.progress)
+		self.progressbar.grid(row=1, column=2, columnspan=13, sticky="ew")
 
 		self.custom_loop()
 		pass
@@ -111,10 +113,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		else:
 			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation")
 		self.columns = columns
-		columns = self.columns
 		self.treeview = ttk.Treeview(self, columns = columns, show="headings", height=30)
-		#self.scrollbar_y = ttk.Scrollbar(self, command=self.treeview.yview)
-		#self.scrollbar_y.grid(row=0, column=1)
 		def treeview_sort_column(tv, col, reverse):
 			l = [(tv.set(k, col), k) for k in tv.get_children('')]
 			l.sort(reverse=reverse)
@@ -125,12 +124,45 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			tv.heading(col, command=lambda _col=col: \
 						treeview_sort_column(tv, col, not reverse))
 		for column in columns:
-			self.treeview.column(column, width=int(GEOMETRY.split("x")[0])//len(columns), anchor = tk.CENTER)
+			self.treeview.column(column, anchor = tk.CENTER)
 			self.treeview.heading(column, text=column.capitalize(), command=lambda _col=column: \
 									treeview_sort_column(self.treeview, _col, False))
 		self.add_games_to_tree()
-		self.treeview.grid(row=0, column=0, columnspan=3)
+		self.treeview.grid(row=0, column=0, columnspan=15, sticky="nsew")
 		self.treeview.tag_configure('has_update', background="red")
+#EVENT METHODS
+	def on_closing(self):
+		config = configparser.ConfigParser()
+		config["OPTIONS"] = {}
+		config["OPTIONS"]["DOWNLOAD_PATH"] = DOWNLOAD_PATH
+		#config["OPTIONS"]["GEOMETRY"] = "{}x{}".format(self.size[0], self.size[1])
+		config["OPTIONS"]["ADVANCED_VIEW"] = str(ADVANCED_VIEW)
+		config["DOWNLOADED_GAMES"] = self.downloaded_games
+		with open('config.cfg', 'w') as configfile:
+			config.write(configfile)
+		self.master.destroy()
+
+	def onKeypressEvent(self, event):
+		pass
+
+	def onCtrlC(self, event=None):
+		item = self.get_json_from_tree(True)
+		if item is not None:
+			pyperclip.copy("; ".join(item))
+		pass
+
+	def onCtrlD(self, event=None):
+		game_json = self.get_json_from_tree()
+		if game_json is None:
+			return
+		if self.platformToDownload.get() == "Automatic":
+			current_os = platform.system().lower()
+		else:
+			current_os = self.platformToDownload.get().lower()
+		if current_os != '':
+			url = game_json["download_link_{}".format(current_os)]
+			pyperclip.copy(url)
+		pass
 
 	def display_contextual(self, event):
 		try:
@@ -142,6 +174,25 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		finally:
 			# make sure to release the grab (Tk 8.0a1 only)
 			self.contextual_menu.grab_release()
+#Update methods
+
+	def update_treeview(self):
+		if ADVANCED_VIEW:
+			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Public Build", "Graphtreon")
+		else:
+			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation")
+		self.columns = columns
+		for column in columns:
+			self.treeview.column(column, anchor = tk.CENTER)
+
+	def custom_loop(self):
+		if self.thread is not None:
+			if self.thread.is_alive:
+				self.progress = self.thread.progress
+		self.update_idletasks()
+		self.update()
+		self.after(50, self.custom_loop)
+
 	def check_update(self, game=None):
 		nb = 0
 		for item in self.treeview.get_children():
@@ -164,6 +215,63 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			self.downloaded_games[game_json["game"]] = game_json["version"]
 		pass
 
+#Open Toplevel windows methods
+	def go_to_patreon(self):
+		game_json = self.get_json_from_tree()
+		page = requests.get(game_json["graphtreon"])
+		soup = BeautifulSoup(page.content, "html.parser")
+		for link in soup.find_all('a'):
+			if str(link.get('href')).startswith("https://www.patreon.com/") and "graphtreon" not in str(link.get('href')):
+				webbrowser.open(link.get('href'), new=2)
+				return
+	def open_explorer(self):
+		subprocess.Popen(r'explorer /select,"{}"'.format(DOWNLOAD_PATH if DOWNLOAD_PATH != "" else os.getcwd()+"/"))
+	def about(self):
+		message = """
+		NSFW Game Manager by Dogeek
+		For additional information, check out
+		https://github.com/cyian-1756/nsfw_game_updater
+		License : GPL-3.0
+		"""
+		messagebox.showinfo("About", message)
+		pass
+		a
+	def edit_current_game(self):
+		if self.add_game_gui is None:
+			data = self.get_json_from_tree()
+			if data is not None:
+				self.add_game_gui = AddNewGUI(master=self, editdata=data)
+				self.add_game_gui.mainloop()
+		pass
+
+	def add_new_game(self):
+		if self.add_game_gui is None:
+			self.add_game_gui = AddNewGUI(master=self)
+			self.add_game_gui.mainloop()
+		pass
+
+	def help(self):
+		webbrowser.open("help.html", new=2)
+		pass
+
+	def open_reddit_scraper(self):
+		if self.reddit_gui is None:
+			self.reddit_gui = GetFromRedditGUI(master=self)
+			self.reddit_gui.mainloop()
+		pass
+
+	def open_options(self):
+		if self.options_gui is None:
+			self.options_gui = OptionGUI(master=self)
+			self.options_gui.mainloop()
+		pass
+
+	def visit_graphtreon(self):
+		game_json = self.get_json_from_tree()
+		if game_json is not None:
+			webbrowser.open(game_json["graphtreon"], new=2)
+		pass
+#Utility methods
 	def add_games_to_tree(self, games=None):
 		if games is None:
 			for i, info in enumerate(self.json_data):
@@ -187,27 +295,6 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				tmp = tuple(tmp)
 				self.treeview.item(item, values=tmp)
 
-	def edit_current_game(self):
-		if self.add_game_gui is None:
-			data = self.get_json_from_tree()
-			if data is not None:
-				self.add_game_gui = AddNewGUI(master=self, editdata=data)
-				self.add_game_gui.mainloop()
-		pass
-
-	def visit_graphtreon(self):
-		game_json = self.get_json_from_tree()
-		if game_json is not None:
-			webbrowser.open(game_json["graphtreon"], new=2)
-		pass
-
-	def custom_loop(self):
-		if self.thread is not None:
-			if self.thread.is_alive:
-				self.progress = self.thread.progress
-		self.update_idletasks()
-		self.update()
-		self.after(5, self.custom_loop)
 	def get_json_from_tree(self, return_item=False, item_to_get=None):
 		try:
 			if item_to_get is None:
@@ -276,85 +363,18 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				self.thread.start()
 		self.downloaded_games[game_json["game"]] = version
 		pass
-
-	def add_new_game(self):
-		if self.add_game_gui is None:
-			self.add_game_gui = AddNewGUI(master=self)
-			self.add_game_gui.mainloop()
-		pass
-
-	def onKeypressEvent(self, event):
-		pass
-
-	def onCtrlC(self, event=None):
-		item = self.get_json_from_tree(True)
-		if item is not None:
-			pyperclip.copy("; ".join(item))
-		pass
-
-	def onCtrlD(self, event=None):
-		game_json = self.get_json_from_tree()
-		if game_json is None:
-			return
-		if self.platformToDownload.get() == "Automatic":
-			current_os = platform.system().lower()
-		else:
-			current_os = self.platformToDownload.get().lower()
-		if current_os != '':
-			url = game_json["download_link_{}".format(current_os)]
-			pyperclip.copy(url)
-		pass
-
-	def go_to_patreon(self):
-		game_json = self.get_json_from_tree()
-		page = requests.get(game_json["graphtreon"])
-		soup = BeautifulSoup(page.content, "html.parser")
-		for link in soup.find_all('a'):
-			if str(link.get('href')).startswith("https://www.patreon.com/user?u="):
-				webbrowser.open(link.get('href'), new=2)
-	def help(self):
-		webbrowser.open("help.html", new=2)
-		pass
-
-	def open_reddit_scraper(self):
-		if self.reddit_gui is None:
-			self.reddit_gui = GetFromRedditGUI(master=self)
-			self.reddit_gui.mainloop()
-		pass
-
-	def open_options(self):
-		if self.options_gui is None:
-			self.options_gui = OptionGUI(master=self)
-			self.options_gui.mainloop()
-		pass
-
-	def on_closing(self):
-		config = configparser.ConfigParser()
-		config["OPTIONS"] = {}
-		config["OPTIONS"]["DOWNLOAD_PATH"] = DOWNLOAD_PATH
-		config["OPTIONS"]["GEOMETRY"] = GEOMETRY
-		config["OPTIONS"]["ADVANCED_VIEW"] = str(ADVANCED_VIEW)
-		config["DOWNLOADED_GAMES"] = self.downloaded_games
-		with open('config.cfg', 'w') as configfile:
-			config.write(configfile)
-		self.master.destroy()
-	def about(self):
-		message = """
-		NSFW Game Manager by Dogeek
-		For additional information, check out
-		https://github.com/cyian-1756/nsfw_game_updater
-		License : GPL-3.0
-		"""
-		messagebox.showinfo("About", message)
-		pass
 	pass
 
 
 if __name__ == "__main__":
 	root = tk.Tk()
 	root.title("NSFW Game Manager")
-	root.geometry(GEOMETRY)
-	root.resizable(0,0)
+	#root.geometry(GEOMETRY)
+	tk.Grid.rowconfigure(root, 0, weight=1)
+	tk.Grid.columnconfigure(root, 0, weight=1)
 	gui = GUI(root)
-	gui.grid(row=0,column=0)
+	for i in range(50):
+		tk.Grid.rowconfigure(gui, i, weight=1)
+		tk.Grid.columnconfigure(gui, i, weight=1)
+	gui.grid(row=0,column=0, sticky="nsew")
 	gui.mainloop()

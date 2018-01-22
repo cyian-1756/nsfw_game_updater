@@ -39,7 +39,7 @@ I created a mediafire account for this app. It may or may not be useful, as of r
 # TO DO List :
 
 - [ ] implement unzipping the downloaded files if it is an archive.
-- [ ] add a 'View in explorer' command
+- [x] add a 'View in explorer' command
 - [ ] implement mega.nz downloading
 - [x] implement auto-refresh of the game list when you add a new game
 - [x] implement updating of games
@@ -72,6 +72,8 @@ I created a mediafire account for this app. It may or may not be useful, as of r
 - threading
 - urllib
 - ftplib
+- subprocess
+- zipfile
 
 ## Additionnal, third-party libraries :
 
@@ -79,3 +81,5 @@ I created a mediafire account for this app. It may or may not be useful, as of r
 - mediafire
 - requests
 - praw
+- beautifulsoup4
+- patreon

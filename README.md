@@ -51,13 +51,15 @@ The gui has been made using the Tk/Tcl wrapper tkinter.
 - Options to set the window size, the download path etc
 - Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database
 - Advanced/Simple view of the tree (to show only the relevant info)
+- Syncing every user's databases (WIP, database is now shared, and remote)
+- Auto-Updating the database
+- Visit Patreon/Graphtreon pages from the application
+- Keyboard shortcuts, contextual menu, all for a better UX
 
 ### Planned :
 
 - Improve reddit integration to automatically enter the info into the database
-- Syncing every user's databases
 - Scraping games' websites to look for updates.
-- Auto-Updating the database
 - Improved Help page
 - Game rating (each user may rate the game, shown rating will be the average rating)
 - Automatic unzipping/install of the games to the specified installation directory

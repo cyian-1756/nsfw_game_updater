@@ -10,7 +10,11 @@ except KeyError:
 try:
 	DOWNLOAD_PATH = config["OPTIONS"]["DOWNLOAD_PATH"]
 except KeyError:
-	DOWNLOAD_PATH = ""
+	DOWNLOAD_PATH = os.getcwd()
+try:
+	INSTALLATION_PATH = config["OPTIONS"]["DOWNLOAD_PATH"]
+except KeyError:
+	INSTALLATION_PATH = DOWNLOAD_PATH
 try:
 	ADVANCED_VIEW = bool(config["OPTIONS"]["ADVANCED_VIEW"])
 except KeyError:

@@ -5,6 +5,7 @@ build/
 virtualenv/
 *.zip
 *.7z
+*.cfg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

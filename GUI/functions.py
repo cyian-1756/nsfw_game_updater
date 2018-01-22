@@ -3,6 +3,9 @@ import requests
 import re
 from distutils.version import StrictVersion
 from bs4 import BeautifulSoup
+import ftplib
+import credentials
+
 
 def can_download(link):
 	return "mega.nz" not in link and "itch.io" not in link
@@ -43,3 +46,8 @@ def get_patreon_link(graphtreon_link):
 	for link in soup.find_all('a'):
 		if str(link.get('href')).startswith("https://www.patreon.com/user?u="):
 			return link.get('href')
+
+def upload_to_ftp(filename="games.json"):
+	with open('games.json', 'r', encoding="utf-8") as f:
+		 ftp = ftplib.FTP("legtux.org", credentials.username, credentials.password)
+		 ftp.storbinary("STOR games.json", f)

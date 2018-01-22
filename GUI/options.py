@@ -15,8 +15,6 @@ class OptionGUI(tk.Toplevel):
 		self.downloadpath_var.set(DOWNLOAD_PATH)
 		self.installationpath_var = tk.StringVar()
 		self.installationpath_var.set(INSTALLATION_PATH)
-		self.advanced_view_var = tk.IntVar()
-		self.advanced_view_var.set(int(ADVANCED_VIEW))
 		self.config()
 		pass
 
@@ -37,8 +35,6 @@ class OptionGUI(tk.Toplevel):
 		self.installationpath_button.grid(row=2, column=2)
 		tk.Label(self, text="Installation Path :").grid(row=2, column=0)
 
-		tk.Checkbutton(self, variable=self.advanced_view_var).grid(row=3, column=1, columnspan=2)
-		tk.Label(self, text="Advanced View :").grid(row=3, column=0)
 		self.ok_button = tk.Button(self, text="Save", command=self.onOkButton)
 		self.cancel_button = tk.Button(self, text="Cancel", command=self.onCancelButton)
 		self.ok_button.grid(column=0, row=6)
@@ -55,14 +51,13 @@ class OptionGUI(tk.Toplevel):
 		directory = askdirectory()
 		self.installationpath_var.set(directory)
 		pass
+
 	def onOkButton(self):
 		global DOWNLOAD_PATH
-		global ADVANCED_VIEW
 		global INSTALLATION_PATH
 
 		INSTALLATION_PATH = self.installationpath_var.get()
-		DOWNLOAD_PATH = self.filepath_var.get()
-		ADVANCED_VIEW = bool(self.advanced_view_var.get())
+		DOWNLOAD_PATH = self.downloadpath_var.get()
 
 		self.master.update_treeview()
 		self.onCancelButton()

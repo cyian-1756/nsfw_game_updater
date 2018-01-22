@@ -16,10 +16,6 @@ try:
 except KeyError:
 	INSTALLATION_PATH = DOWNLOAD_PATH
 try:
-	ADVANCED_VIEW = bool(config["OPTIONS"]["ADVANCED_VIEW"])
-except KeyError:
-	ADVANCED_VIEW = False
-try:
 	DOWNLOADED_GAMES = config["DOWNLOADED_GAMES"]
 except KeyError:
 	DOWNLOADED_GAMES = {}

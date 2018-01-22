@@ -30,14 +30,10 @@ from get_from_reddit import GetFromRedditGUI
 #For now, set the geometry manually
 
 class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
-	def __init__(self, master=None, remotejson=True):
+	def __init__(self, master=None):
 		tk.Frame.__init__(self,master)
 		self.master = master
-
-		if remotejson:
-			self._jsonfile = urllib.request.urlopen("http://dogeek.legtux.org/games.json")
-		else:
-			self._jsonfile = open('games.json', 'r')
+		self._jsonfile = open('games.json', 'r')
 		self.json_data = json.loads(self._jsonfile.read())
 		self._jsonfile.close()
 		self.downloaded_games = {} if DOWNLOADED_GAMES is None else DOWNLOADED_GAMES
@@ -108,10 +104,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		pass
 
 	def init_treeview(self):
-		if ADVANCED_VIEW:
-			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Public Build", "Graphtreon")
-		else:
-			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation")
+		columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation")
 		self.columns = columns
 		self.treeview = ttk.Treeview(self, columns = columns, show="headings", height=30)
 		def treeview_sort_column(tv, col, reverse):
@@ -135,8 +128,6 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		config = configparser.ConfigParser()
 		config["OPTIONS"] = {}
 		config["OPTIONS"]["DOWNLOAD_PATH"] = DOWNLOAD_PATH
-		#config["OPTIONS"]["GEOMETRY"] = "{}x{}".format(self.size[0], self.size[1])
-		config["OPTIONS"]["ADVANCED_VIEW"] = str(ADVANCED_VIEW)
 		config["DOWNLOADED_GAMES"] = self.downloaded_games
 		with open('config.cfg', 'w') as configfile:
 			config.write(configfile)
@@ -177,10 +168,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 #Update methods
 
 	def update_treeview(self):
-		if ADVANCED_VIEW:
-			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Public Build", "Graphtreon")
-		else:
-			columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation")
+		columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation")
 		self.columns = columns
 		for column in columns:
 			self.treeview.column(column, anchor = tk.CENTER)
@@ -277,12 +265,12 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			for i, info in enumerate(self.json_data):
 				if i != 0:
 					formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
-					info["visual_style"], info["animation"], info["public_build"], info["graphtreon"])
+					info["visual_style"], info["animation"])
 					self.treeview.insert('', 'end', values = formatted)
 		else:
 			for i, info in enumerate(games):
 				formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
-				info["visual_style"], info["animation"], info["public_build"], info["graphtreon"])
+				info["visual_style"], info["animation"])
 				self.treeview.insert('', 'end', values = formatted)
 		pass
 

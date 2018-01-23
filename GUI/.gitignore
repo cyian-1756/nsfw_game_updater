@@ -5,12 +5,13 @@ build/
 virtualenv/
 *.zip
 *.7z
+*.cfg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
+!credentials.pyc
 # C extensions
 *.so
 

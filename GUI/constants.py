@@ -3,8 +3,18 @@ import os
 
 config = configparser.ConfigParser()
 config.read("config.cfg")
-GEOMETRY = config["GEOMETRY"]["x"] + "x" + config["GEOMETRY"]["y"]
-DOWNLOAD_PATH = config["DOWNLOAD_PATH"]["path"]
+try:
+	GEOMETRY = config["OPTIONS"]["GEOMETRY"]
+except KeyError:
+	GEOMETRY = "800x600"
+try:
+	DOWNLOAD_PATH = config["OPTIONS"]["DOWNLOAD_PATH"]
+except KeyError:
+	DOWNLOAD_PATH = os.getcwd()
+try:
+	INSTALLATION_PATH = config["OPTIONS"]["DOWNLOAD_PATH"]
+except KeyError:
+	INSTALLATION_PATH = DOWNLOAD_PATH
 try:
 	DOWNLOADED_GAMES = config["DOWNLOADED_GAMES"]
 except KeyError:

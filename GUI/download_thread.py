@@ -1,7 +1,6 @@
 from threading import Thread, Lock
 
 lock = Lock()
-current_progress = 0
 
 class DownloadThread(Thread):
 	def __init__(self, get_request, chunks, path, name):

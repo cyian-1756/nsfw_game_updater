@@ -3,6 +3,7 @@
 images/
 build/
 virtualenv/
+other/
 *.zip
 *.7z
 *.cfg

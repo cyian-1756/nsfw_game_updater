@@ -332,20 +332,41 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			if "has_update" in itemtags or game_json["game"] not in self.downloaded_games:
 				if "has_update" in itemtags:
 					self.treeview.item(item, tags=())
-				if "mediafire" in url:
-					api = mediafire.MediaFireApi()
-					response = api.file_get_links(url.split("/")[url.split('/').index("file")+1])
-					url = response['links'][0]['normal_download']
-				r = requests.get(url, stream=True)
-				if r.status_code == 200:
-					try:
-						d = r.headers['content-disposition']
-						name = re.findall("filename=(.+)", d)[0]
-						size = int(r.headers['content-length'])
-					except KeyError:
-						name = url.split("/")[-1:][0]
-						size = 1024
-					chunksize = size//1024
+				if "google" in url:
+					def get_confirm_token(response):
+						for key, value in response.cookies.items():
+							if key.startswith('download_warning'):
+								return value
+
+						return None
+					URL = "https://docs.google.com/uc?export=download"
+					if 'id' in url:
+						id_ = url.split("id=")[-1]
+					elif "/d/" in url:
+						id_ = url.split('https://drive.google.com/file/d/')[1].split('/view?usp=sharing')[0]
+					session = requests.Session()
+					response = session.get(URL, params = { 'id' : id_ }, stream = True)
+					token = get_confirm_token(response)
+					if token:
+						params = { 'id' : id_, 'confirm' : token }
+						r = session.get(URL, params = params, stream = True)
+						chunksize=32768
+						name = game_json["game"].capitalize()+".zip"
+				else:
+					if "mediafire" in url:
+						api = mediafire.MediaFireApi()
+						response = api.file_get_links(url.split("/")[url.split('/').index("file")+1])
+						url = response['links'][0]['normal_download']
+					r = requests.get(url, stream=True)
+					if r.status_code == 200:
+						try:
+							d = r.headers['content-disposition']
+							name = re.findall("filename=(.+)", d)[0]
+							size = int(r.headers['content-length'])
+						except KeyError:
+							name = url.split("/")[-1:][0]
+							size = 1024
+						chunksize = size//1024
 				self.thread = DownloadThread(r, chunksize, download, name)
 				self.thread.daemon = True
 				self.thread.start()

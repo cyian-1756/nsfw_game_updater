@@ -1,4 +1,5 @@
 from threading import Thread, Lock
+import platform
 
 lock = Lock()
 
@@ -9,6 +10,11 @@ class DownloadThread(Thread):
 		self.chunks = chunks
 		self.chunksize = 1024
 		self.path = path
+		if not self.path.endswith("/"):
+			if platform.system().lower()=="windows":
+				self.path += "\\"
+			else:
+				self.path+="/"
 		self.name = name
 		self.progress = 0
 

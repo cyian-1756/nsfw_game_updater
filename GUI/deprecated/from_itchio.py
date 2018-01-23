@@ -33,6 +33,7 @@ headers = {
 	'Origin': 'https://outbreakgames.itch.io',
 	'Accept-Encoding': 'gzip, deflate, br',
 	'Accept-Language': 'en-US,en;q=0.9',
+	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/63.0.3239.84 Chrome/63.0.3239.84 Safari/537.36',
 	'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
 	'Accept': '*/*',
 	'Cache-Control': 'no-cache',
@@ -41,9 +42,16 @@ headers = {
 	'DNT': '1',
 }
 
-response = requests.post('https://outbreakgames.itch.io/snow-daze-the-music-of-winter/file/718628', headers=headers)
-
-thread = DownloadThread(response, 1024, os.getcwd(), "snowdaze.zip")
-thread.daemon = True
-thread.start()
-print(thread.progress)
+response = requests.get('https://outbreakgames.itch.io/snow-daze-the-music-of-winter/file/718628', headers=headers)
+print(response)
+path = os.getcwd()
+name = "snowdaze.zip"
+chunk_size = 1024
+if not path.endswith("/"):
+	if platform.system().lower()=="windows":
+		path += "\\"
+	else:
+		path+="/"
+with open(path+name, 'wb') as f:
+	for chunk in response.iter_content(chunk_size=chunk_size):
+		f.write(chunk)

@@ -3,6 +3,7 @@ import json
 from threading import Thread, Lock
 import platform
 import os
+import mimetypes
 
 lock = Lock()
 
@@ -30,10 +31,8 @@ class DownloadThread(Thread):
 
 headers = {
 	'Pragma': 'no-cache',
-	'Origin': 'https://outbreakgames.itch.io',
 	'Accept-Encoding': 'gzip, deflate, br',
 	'Accept-Language': 'en-US,en;q=0.9',
-	'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/63.0.3239.84 Chrome/63.0.3239.84 Safari/537.36',
 	'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
 	'Accept': '*/*',
 	'Cache-Control': 'no-cache',
@@ -45,10 +44,11 @@ headers = {
 response = requests.post('https://outbreakgames.itch.io/snow-daze-the-music-of-winter/file/718628', headers=headers)
 print(response.json())
 url = response.json()["url"]
-
+"""
 r = requests.get(url, stream=True)
 path = os.getcwd()
-name = "snowdaze.zip"
+name = 'snowdaze'+mimetypes.guess_extension(r.headers["Content-type"])
+print(name)
 chunk_size = 1024
 if not path.endswith("/"):
 	if platform.system().lower()=="windows":
@@ -58,3 +58,4 @@ if not path.endswith("/"):
 with open(path+name, 'wb') as f:
 	for chunk in r.iter_content(chunk_size=chunk_size):
 		f.write(chunk)
+"""

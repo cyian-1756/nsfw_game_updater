@@ -335,7 +335,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			if "has_update" in itemtags or game_json["game"] not in self.downloaded_games:
 				if "has_update" in itemtags:
 					self.treeview.item(item, tags=())
-				if "google" in url:
+				if "drive.google.com" in url:
 					def get_confirm_token(response):
 						for key, value in response.cookies.items():
 							if key.startswith('download_warning'):
@@ -355,7 +355,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 						r = session.get(URL, params = params, stream = True)
 						chunksize=32768
 						name = game_json["game"].capitalize()+".zip"
-				elif "itch.io" in url or url.startswith("open:"):
+				elif url.startswith("open:"):
 					webbrowser.open(url.split("open:")[1], new=2)
 					return
 				else:
@@ -363,6 +363,21 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 						api = mediafire.MediaFireApi()
 						response = api.file_get_links(url.split("/")[url.split('/').index("file")+1])
 						url = response['links'][0]['normal_download']
+					elif "itch.io" in url:
+						headers = {
+							'Pragma': 'no-cache',
+							'Accept-Encoding': 'gzip, deflate, br',
+							'Accept-Language': 'en-US,en;q=0.9',
+							'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+							'Accept': '*/*',
+							'Cache-Control': 'no-cache',
+							'X-Requested-With': 'XMLHttpRequest',
+							'Connection': 'keep-alive',
+							'DNT': '1'
+						}
+						response = requests.post('https://outbreakgames.itch.io/snow-daze-the-music-of-winter/file/718628', headers=headers)
+						url = response.json()["url"]
+						print("url")
 					r = requests.get(url, stream=True)
 					if r.status_code == 200:
 						try:
@@ -373,6 +388,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 							name = url.split("/")[-1:][0]
 							size = 1024
 						chunksize = size//1024
+				print(name)
 				self.thread = DownloadThread(r, chunksize, download, name)
 				self.thread.daemon = True
 				self.thread.start()

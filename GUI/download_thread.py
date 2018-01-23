@@ -8,14 +8,13 @@ class DownloadThread(Thread):
 		Thread.__init__(self)
 		self.get_request = get_request
 		self.chunks = chunks
-		self.chunksize = 1024
 		self.path = path
-		if not self.path.endswith("/"):
+		if not self.path.endswith("/") and not self.path.endswith("\\"):
 			if platform.system().lower()=="windows":
 				self.path += "\\"
 			else:
 				self.path+="/"
-		self.name = name
+		self.name = name.strip('"')
 		self.progress = 0
 
 	def run(self):

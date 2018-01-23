@@ -39,11 +39,14 @@ headers = {
 	'Cache-Control': 'no-cache',
 	'X-Requested-With': 'XMLHttpRequest',
 	'Connection': 'keep-alive',
-	'DNT': '1',
+	'DNT': '1'
 }
 
-response = requests.get('https://outbreakgames.itch.io/snow-daze-the-music-of-winter/file/718628', headers=headers)
-print(response)
+response = requests.post('https://outbreakgames.itch.io/snow-daze-the-music-of-winter/file/718628', headers=headers)
+print(response.json())
+url = response.json()["url"]
+
+r = requests.get(url, stream=True)
 path = os.getcwd()
 name = "snowdaze.zip"
 chunk_size = 1024
@@ -53,5 +56,5 @@ if not path.endswith("/"):
 	else:
 		path+="/"
 with open(path+name, 'wb') as f:
-	for chunk in response.iter_content(chunk_size=chunk_size):
+	for chunk in r.iter_content(chunk_size=chunk_size):
 		f.write(chunk)

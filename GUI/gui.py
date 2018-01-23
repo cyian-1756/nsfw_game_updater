@@ -302,9 +302,12 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 
 	def download_selected_game(self): #It would be simpler if each game had its own ID, as well as to version track later on.
 		def can_download(link):
-			return "mega.nz" not in link and "itch.io" not in link
+			return "mega.nz" not in link
 		game_json = self.get_json_from_tree()
 		if game_json is None:
+			return
+		if "paid" in game_json["public_build"].lower():
+			messagebox.showinfo("Information", message="This game needs to be bought !")
 			return
 		item = self.treeview.item(self.treeview.focus())
 		itemtags = item["tags"]
@@ -352,6 +355,9 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 						r = session.get(URL, params = params, stream = True)
 						chunksize=32768
 						name = game_json["game"].capitalize()+".zip"
+				elif "itch.io" in url or url.startswith("open:"):
+					webbrowser.open(url.split("open:")[1], new=2)
+					return
 				else:
 					if "mediafire" in url:
 						api = mediafire.MediaFireApi()

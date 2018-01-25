@@ -18,6 +18,7 @@ import urllib.request
 from bs4 import BeautifulSoup
 import subprocess
 import zipfile
+import logging
 
 from constants import *
 from functions import *
@@ -26,8 +27,8 @@ from download_thread import *
 from add_new import AddNewGUI
 from get_from_reddit import GetFromRedditGUI
 
-####FOR SOME REASON self.winfo_width() returns 1 even after self.update_idletasks() FIXME
-#For now, set the geometry manually
+logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
+
 
 class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
 	def __init__(self, master=None):
@@ -96,8 +97,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.platformCombo = ttk.Combobox(self, textvariable = self.platformToDownload, state='readonly', values=("Automatic", "Windows", "Linux", "MacOS", "Android"))
 		self.platformCombo.grid(row=1, column=1)
 		self.platformCombo.current(0)
-		self.progress = 0
-		self.progressbar = ttk.Progressbar(self, mode="determinate", maximum=1024, variable=self.progress)
+		self.progress = tk.DoubleVar()
+		self.progressbar = ttk.Progressbar(self, mode="determinate", maximum=100, variable=self.progress)
 		self.progressbar.grid(row=1, column=2, columnspan=13, sticky="ew")
 
 		self.custom_loop()
@@ -128,7 +129,10 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		config = configparser.ConfigParser()
 		config["OPTIONS"] = {}
 		config["OPTIONS"]["DOWNLOAD_PATH"] = DOWNLOAD_PATH
+		config["OPTIONS"]["INSTALLATION_PATH"] = INSTALLATION_PATH
+		config["OPTIONS"]["CHUNKSIZE"] = str(CHUNKSIZE)
 		config["DOWNLOADED_GAMES"] = self.downloaded_games
+
 		with open('config.cfg', 'w') as configfile:
 			config.write(configfile)
 		self.master.destroy()
@@ -162,6 +166,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				# mouse pointer over item
 				self.treeview.selection_set(iid)
 			self.contextual_menu.tk_popup(event.x_root, event.y_root, 0)
+		except Exception as e:
+			logging.error("Error on display_contextual function : {}".format(e))
 		finally:
 			# make sure to release the grab (Tk 8.0a1 only)
 			self.contextual_menu.grab_release()
@@ -176,7 +182,9 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 	def custom_loop(self):
 		if self.thread is not None:
 			if self.thread.is_alive:
-				self.progress = self.thread.progress
+				self.progress.set(int(self.thread.progress/(self.thread.size//CHUNKSIZE)*100))
+			else:
+				self.progress.set(0)
 		self.update_idletasks()
 		self.update()
 		self.after(50, self.custom_loop)
@@ -300,6 +308,24 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			messagebox.showerror("Error", message="You need to select an item first !")
 			return
 
+	def on_complete_callback(self, name, path):
+		def can_install(filename):
+			return ".zip" in filename
+
+		if can_install(name):
+			if messagebox.askyesno(title="Install game ?", message="Do you wish to install the game?", default='no'):
+				ipath = INSTALLATION_PATH
+				if not ipath.endswith("/") and not ipath.endswith("\\"):
+					if platform.system().lower()=="windows":
+						ipath += "\\"
+					else:
+						ipath+="/"
+				zip_ref = zipfile.ZipFile(path+name, 'r')
+				zip_ref.extractall(ipath+name.split(".zip")[0])
+				zip_ref.close()
+
+
+
 	def download_selected_game(self): #It would be simpler if each game had its own ID, as well as to version track later on.
 		def can_download(link):
 			return "mega.nz" not in link
@@ -353,7 +379,6 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 					if token:
 						params = { 'id' : id_, 'confirm' : token }
 						r = session.get(URL, params = params, stream = True)
-						chunksize=32768
 						name = game_json["game"].capitalize()+".zip"
 				elif url.startswith("open:"):
 					webbrowser.open(url.split("open:")[1], new=2)
@@ -375,24 +400,29 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 							'Connection': 'keep-alive',
 							'DNT': '1'
 						}
-						response = requests.post('https://outbreakgames.itch.io/snow-daze-the-music-of-winter/file/718628', headers=headers)
+						response = requests.post(url, headers=headers)
 						url = response.json()["url"]
-						print("url")
 					r = requests.get(url, stream=True)
 					if r.status_code == 200:
+						size = None
 						try:
+							size = int(r.headers['Content-Length'])
 							d = r.headers['content-disposition']
 							name = re.findall("filename=(.+)", d)[0]
-							size = int(r.headers['content-length'])
-						except KeyError:
+						except KeyError as e:
+							logging.warning("Error on file downloading, name:{}, error :{}".format(game_json["name"], e))
 							name = url.split("/")[-1:][0]
-							size = 1024
-						chunksize = size//1024
-				print(name)
-				self.thread = DownloadThread(r, chunksize, download, name)
+							if size is None:
+								size = 5e6
+					else:
+						messagebox.showerror("Error", message="Exception in downloading, response returned error code {}".format(r.status_code))
+						return
+				if name == "":
+					name = game_json["game"]+".zip"
+				self.thread = DownloadThread(r, CHUNKSIZE, size, download, name, self.on_complete_callback)
 				self.thread.daemon = True
 				self.thread.start()
-		self.downloaded_games[game_json["game"]] = version
+		#self.downloaded_games[game_json["game"]] = version
 		pass
 	pass
 

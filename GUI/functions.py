@@ -61,4 +61,4 @@ def get_itchio_id(url, platform_=None):
 		for upload in soup.find_all('div', 'upload'):
 			if platform_.lower() in upload.find('span', 'download_platforms').span["title"].lower():
 				return upload.find("a")["data-upload_id"] # there is no a tag in this div even though the webbrowser says so...
-get_itchio_id("https://outbreakgames.itch.io/snow-daze-the-music-of-winter/download/eyJleHBpcmVzIjoxNTE2NzM3NjEzLCJpZCI6MTc5MzExfQ%3d%3d.4Um51fxNr4w%2fSyaMMDajfdmuq78%3d", "windows")
+#get_itchio_id("https://outbreakgames.itch.io/snow-daze-the-music-of-winter/download/eyJleHBpcmVzIjoxNTE2NzM3NjEzLCJpZCI6MTc5MzExfQ%3d%3d.4Um51fxNr4w%2fSyaMMDajfdmuq78%3d", "windows")

@@ -19,6 +19,10 @@ try:
 	DOWNLOADED_GAMES = config["DOWNLOADED_GAMES"]
 except KeyError:
 	DOWNLOADED_GAMES = {}
+try:
+	CHUNKSIZE = int(config["OPTIONS"]["CHUNKSIZE"])
+except KeyError:
+	CHUNKSIZE = 1024
 
 #####---------GRAPHICS----------#######
 

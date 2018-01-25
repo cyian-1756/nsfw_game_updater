@@ -4,10 +4,11 @@ import platform
 lock = Lock()
 
 class DownloadThread(Thread):
-	def __init__(self, get_request, chunks, path, name):
+	def __init__(self, get_request, chunks, size, path, name, callback):
 		Thread.__init__(self)
 		self.get_request = get_request
 		self.chunks = chunks
+		self.size = size
 		self.path = path
 		if not self.path.endswith("/") and not self.path.endswith("\\"):
 			if platform.system().lower()=="windows":
@@ -16,6 +17,7 @@ class DownloadThread(Thread):
 				self.path+="/"
 		self.name = name.strip('"')
 		self.progress = 0
+		self.callback = callback
 
 	def run(self):
 		with open(self.path+self.name, 'wb') as f:
@@ -23,4 +25,4 @@ class DownloadThread(Thread):
 				with lock:
 					self.progress += 1
 					f.write(chunk)
-		print(self.progress)
+		self.callback(self.name, self.path)

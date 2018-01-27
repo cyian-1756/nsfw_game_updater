@@ -26,6 +26,7 @@ from options import OptionGUI
 from download_thread import *
 from add_new import AddNewGUI
 from get_from_reddit import GetFromRedditGUI
+from mega_downloader import MegaDownloader
 
 logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 
@@ -182,7 +183,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 	def custom_loop(self):
 		if self.thread is not None:
 			if self.thread.is_alive:
-				self.progress.set(int(self.thread.progress/(self.thread.size//CHUNKSIZE)*100))
+				self.progress.set(self.thread.progress)
 			else:
 				self.progress.set(0)
 		self.update_idletasks()
@@ -327,8 +328,6 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 
 
 	def download_selected_game(self): #It would be simpler if each game had its own ID, as well as to version track later on.
-		def can_download(link):
-			return "mega.nz" not in link
 		game_json = self.get_json_from_tree()
 		if game_json is None:
 			return
@@ -348,10 +347,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			download = os.getcwd()+'\\'
 		else:
 			download = DOWNLOAD_PATH
-		if not can_download(url):
-			webbrowser.open(url, new=2)
-			#messagebox.showerror("Error", "NSFW Game Manager doesn't support downloading from mega or itch.io yet.")
-		elif url == "-":
+		if url == "-":
 			messagebox.showerror("Error", "This game isn't supported by your platform yet.")
 		elif url.lower() == "non-static link":
 			messagebox.showerror("Error", "The link for this game is non-static.")
@@ -382,6 +378,11 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 						name = game_json["game"].capitalize()+".zip"
 				elif url.startswith("open:"):
 					webbrowser.open(url.split("open:")[1], new=2)
+					return
+				elif "mega.nz" in url:
+					self.thread = MegaDownloader(url, download, self.on_complete_callback)
+					self.thread.daemon = True
+					self.thread.start()
 					return
 				else:
 					if "mediafire" in url:

@@ -35,9 +35,13 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 	def __init__(self, master=None):
 		tk.Frame.__init__(self,master)
 		self.master = master
-		self._jsonfile = open('games.json', 'r')
-		self.json_data = json.loads(self._jsonfile.read())
-		self._jsonfile.close()
+		try:
+			_jsonfile = open('games.json', 'r')
+			self.json_data = json.loads(_jsonfile.read())
+			_jsonfile.close()
+		except FileNotFoundError:
+			self.json_data = requests.get("https://raw.githubusercontent.com/cyian-1756/nsfw_game_updater/master/games.json").json()
+
 		self.downloaded_games = {} if DOWNLOADED_GAMES is None else DOWNLOADED_GAMES
 		self.platformToDownload = tk.StringVar()
 		self.thread = None

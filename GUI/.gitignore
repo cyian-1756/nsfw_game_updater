@@ -7,6 +7,7 @@ other/
 *.zip
 *.7z
 *.cfg
+*.bak
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -37,7 +37,7 @@ class OptionGUI(tk.Toplevel):
 		self.installationpath_button.grid(row=2, column=2)
 		tk.Label(self, text="Installation Path :").grid(row=2, column=0)
 
-		tk.Spinbox(self, textvariable=self.chunksize_var, from_=256, to=4096, increment=256).grid(row=3, column=1)
+		tk.Spinbox(self, textvariable=self.chunksize_var, from_=256000, to=4096000, increment=256000).grid(row=3, column=1)
 		tk.Label(self, text="RAM used to download :").grid(row=3, column=0)
 
 		self.ok_button = tk.Button(self, text="Save", command=self.onOkButton)
@@ -65,7 +65,7 @@ class OptionGUI(tk.Toplevel):
 		INSTALLATION_PATH = self.installationpath_var.get()
 		DOWNLOAD_PATH = self.downloadpath_var.get()
 		CHUNKSIZE = int(self.chunksize_var.get())
-		
+
 		self.master.update_treeview()
 		self.onCancelButton()
 	def onCancelButton(self):

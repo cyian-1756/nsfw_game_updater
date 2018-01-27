@@ -88,6 +88,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		editmenu.add_command(label="Add New Game", command=self.add_new_game)
 		editmenu.add_command(label="Edit Selected Entry", command=self.edit_current_game)
 		editmenu.add_command(label="Open Reddit Scraper", command=self.open_reddit_scraper)
+		editmenu.add_command(label="Save database locally", command=self.save_database)
+		editmenu.add_command(label="Remove local database", command=self.remove_local_db)
 		self.menubar.add_cascade(label="File", menu=filemenu)
 		self.menubar.add_cascade(label="Edit", menu=editmenu)
 		self.menubar.add_command(label="Options", command=self.open_options)
@@ -209,6 +211,14 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			messagebox.showinfo("Information", "1 update found")
 		else:
 			messagebox.showinfo("Information", "{} updates found".format(nb))
+
+	def save_database(self):
+		with open('games.json', 'w', encoding="utf-8") as f:
+			 f.write(json.dumps(self.json_data, indent=4, sort_keys=True))
+
+	def remove_local_db(self):
+		if messagebox.askyesno(title="Remove local database", message="Are you sure ?"):
+			os.remove("games.json")
 
 	def mark_as_downloaded(self):
 		game_json = self.get_json_from_tree()

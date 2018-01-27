@@ -1,27 +1,31 @@
 # NFSW game updater
 
-This project allows people to keep track of NSFW games they enjoy
+This project allows people to keep track of NSFW games they enjoy.
 
-## Adding a game
+The latest GUI release is at https://github.com/cyian-1756/nsfw_game_updater/releases
+
+## CLI (Command Line Interface) :
+
+### Adding a game
 
 Use `add_new_game.py`
 
 
-## Usage
+### Usage
 
-### Searching
+#### Searching
 
 The program allows search the game database by developer, game name, setting, engine and genre
 
 Example: `python3 main.py --list-by-dev mity`
 
-### Downloading
+#### Downloading
 
 The program allows downloading some games
 
 Example: `python3 main.py --download --game-name "trials in tainted space" --os windows`
 
-## TODO
+### TODO
 
 - [ ] Add download links for all games currently in the list
 
@@ -55,6 +59,7 @@ The gui has been made using the Tk/Tcl wrapper tkinter.
 - Auto-Updating the database
 - Visit Patreon/Graphtreon pages from the application
 - Keyboard shortcuts, contextual menu, all for a better UX
+- Automatic unzipping/install of the games to the specified installation directory
 
 ### Planned :
 
@@ -62,6 +67,5 @@ The gui has been made using the Tk/Tcl wrapper tkinter.
 - Scraping games' websites to look for updates.
 - Improved Help page
 - Game rating (each user may rate the game, shown rating will be the average rating)
-- Automatic unzipping/install of the games to the specified installation directory
 - Patreon integration to pledge from the app itself
 - itch.io integration to buy/donate from the app itself

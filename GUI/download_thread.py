@@ -24,5 +24,6 @@ class DownloadThread(Thread):
 			for chunk in self.get_request.iter_content(chunk_size=self.chunks):
 				with lock:
 					self.progress += 1
+					self.progress = int(self.progress/(self.size//CHUNKSIZE)*100)
 					f.write(chunk)
 		self.callback(self.name, self.path)

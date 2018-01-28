@@ -332,7 +332,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			if name.lower() == "cursed armor":
 				pwd = "wolfzq"
 			msg = "Do you wish to install the game?"
-			msg += "\nPassword: {}".format(pwd) if pwd is not None
+			if pwd is not None:
+				msg += "\nPassword: {}".format(pwd)
 			if messagebox.askyesno(title="Install game ?", message="Do you wish to install the game?", default='no'):
 				ipath = INSTALLATION_PATH
 				if not ipath.endswith("/") and not ipath.endswith("\\"):

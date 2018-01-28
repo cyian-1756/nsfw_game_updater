@@ -4,6 +4,8 @@ This project allows people to keep track of NSFW games they enjoy.
 
 The latest GUI release is at https://github.com/cyian-1756/nsfw_game_updater/releases
 
+To be able to edit the database, you'll need to fill out this form : https://goo.gl/forms/6o7RpfWlEM6DyGRs2 You can also open a pull request on github if you make database changes, we'll review it, and merge it if no errors have been found.
+
 ## CLI (Command Line Interface) :
 
 ### Adding a game

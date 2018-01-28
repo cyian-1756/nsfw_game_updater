@@ -32,7 +32,7 @@ The GUI has been made using the Tk/Tcl wrapper for python, tkinter.
 
 ## Fix :
 
-- [ ] right click on an item doesn't really select it, and results in an error when trying to perform onSelect actions.
+- [x] right click on an item doesn't really select it, and results in an error when trying to perform onSelect actions.
 - [ ] trying to move/resize the window is still a bit glitchy (window shaking, resize snapping back to where it was...)
 
 

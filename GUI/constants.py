@@ -1,5 +1,11 @@
 import configparser
 import os
+import platform
+
+if platform.system().lower() == "windows":
+	SEP = "\\"
+else:
+	SEP = "/"
 
 config = configparser.ConfigParser()
 config.read("config.cfg")
@@ -10,11 +16,11 @@ except KeyError:
 try:
 	DOWNLOAD_PATH = config["OPTIONS"]["DOWNLOAD_PATH"]
 except KeyError:
-	DOWNLOAD_PATH = os.getcwd()
+	DOWNLOAD_PATH = "./downloads/"
 try:
 	INSTALLATION_PATH = config["OPTIONS"]["DOWNLOAD_PATH"]
 except KeyError:
-	INSTALLATION_PATH = DOWNLOAD_PATH
+	INSTALLATION_PATH = "./install/"
 try:
 	DOWNLOADED_GAMES = config["DOWNLOADED_GAMES"]
 except KeyError:

@@ -328,6 +328,11 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			return ".zip" in filename
 
 		if can_install(name):
+			pwd = None
+			if name.lower() == "cursed armor":
+				pwd = "wolfzq"
+			msg = "Do you wish to install the game?"
+			msg += "\nPassword: {}".format(pwd) if pwd is not None
 			if messagebox.askyesno(title="Install game ?", message="Do you wish to install the game?", default='no'):
 				ipath = INSTALLATION_PATH
 				if not ipath.endswith("/") and not ipath.endswith("\\"):
@@ -336,7 +341,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 					else:
 						ipath+="/"
 				zip_ref = zipfile.ZipFile(path+name, 'r')
-				zip_ref.extractall(ipath+name.split(".zip")[0])
+				zip_ref.extractall(ipath+name.split(".zip")[0], pwd=pwd)
 				zip_ref.close()
 
 

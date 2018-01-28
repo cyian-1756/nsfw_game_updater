@@ -90,11 +90,14 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		editmenu.add_command(label="Open Reddit Scraper", command=self.open_reddit_scraper)
 		editmenu.add_command(label="Save database locally", command=self.save_database)
 		editmenu.add_command(label="Remove local database", command=self.remove_local_db)
+		helpmenu = tk.Menu(self)
+		helpmenu.add_command(label="About", command=self.about)
+		helpmenu.add_command(label="Help", command=self.help)
+
 		self.menubar.add_cascade(label="File", menu=filemenu)
 		self.menubar.add_cascade(label="Edit", menu=editmenu)
 		self.menubar.add_command(label="Options", command=self.open_options)
-		self.menubar.add_command(label="About", command=self.about)
-		self.menubar.add_command(label="Help", command=self.help)
+		self.menubar.add_cascade(label="?", menu=helpmenu)
 		self.master.config(menu=self.menubar)
 
 		self.init_treeview()
@@ -128,9 +131,11 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			self.treeview.column(column, anchor = tk.CENTER)
 			self.treeview.heading(column, text=column.capitalize(), command=lambda _col=column: \
 									treeview_sort_column(self.treeview, _col, False))
-		self.add_games_to_tree()
 		self.treeview.grid(row=0, column=0, columnspan=15, sticky="nsew")
 		self.treeview.tag_configure('has_update', background="red")
+		self.treeview.tag_configure('paid', background="AntiqueWhite1")
+		self.add_games_to_tree()
+
 #EVENT METHODS
 	def on_closing(self):
 		config = configparser.ConfigParser()
@@ -172,6 +177,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			if iid:
 				# mouse pointer over item
 				self.treeview.selection_set(iid)
+				self.treeview.focus(iid)
 			self.contextual_menu.tk_popup(event.x_root, event.y_root, 0)
 		except Exception as e:
 			logging.error("Error on display_contextual function : {}".format(e))
@@ -289,12 +295,18 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				if i != 0:
 					formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
 					info["visual_style"], info["animation"])
-					self.treeview.insert('', 'end', values = formatted)
+					if "paid" in info["public_build"]:
+						self.treeview.insert('', 'end', values = formatted, tags=["paid"])
+					else:
+						self.treeview.insert('', 'end', values = formatted)
 		else:
 			for i, info in enumerate(games):
 				formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
 				info["visual_style"], info["animation"])
-				self.treeview.insert('', 'end', values = formatted)
+				if "paid" in info["public_build"]:
+					self.treeview.insert('', 'end', values = formatted, tags=["paid"])
+				else:
+					self.treeview.insert('', 'end', values = formatted)
 		pass
 
 	def update_game_in_tree(self, game_json):
@@ -332,8 +344,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			if name.lower() == "cursed armor":
 				pwd = "wolfzq"
 			msg = "Do you wish to install the game?"
-			if pwd is not None:
-				msg += "\nPassword: {}".format(pwd)
+			#if pwd is not None:
+			#	msg += "\nPassword: {}".format(pwd)
 			if messagebox.askyesno(title="Install game ?", message="Do you wish to install the game?", default='no'):
 				ipath = INSTALLATION_PATH
 				if not ipath.endswith("/") and not ipath.endswith("\\"):
@@ -344,6 +356,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				zip_ref = zipfile.ZipFile(path+name, 'r')
 				zip_ref.extractall(ipath+name.split(".zip")[0], pwd=pwd)
 				zip_ref.close()
+		#else:
+		#	messagebox.showinfo("Information", message="Automatic install only works with zip files at the moment")
 
 
 

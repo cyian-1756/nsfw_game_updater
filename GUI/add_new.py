@@ -62,7 +62,7 @@ def game_exists(game_name, db=None):
 def add_new_game(json_to_add, is_new):
 	handler = SQLHandler()
 	if is_new:
-		print(type(json.dumps(json_to_add)))
+		print(json.dumps(json_to_add))
 		handler.add_game(json_to_add)
 
 class AddNewGUI(tk.Toplevel):

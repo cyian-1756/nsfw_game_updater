@@ -18,7 +18,7 @@ try:
 except KeyError:
 	DOWNLOAD_PATH = "./downloads/"
 try:
-	INSTALLATION_PATH = config["OPTIONS"]["DOWNLOAD_PATH"]
+	INSTALLATION_PATH = config["OPTIONS"]["INSTALLATION_PATH"]
 except KeyError:
 	INSTALLATION_PATH = "./install/"
 try:

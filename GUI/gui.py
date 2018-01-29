@@ -253,7 +253,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				webbrowser.open(link.get('href'), new=2)
 				return
 	def open_explorer(self):
-		subprocess.Popen(r'explorer /select,"{}"'.format(DOWNLOAD_PATH if DOWNLOAD_PATH != "" else os.getcwd()+"/"))
+		p = DOWNLOAD_PATH if ":\\" in DOWNLOAD_PATH else os.getcwd()+DOWNLOAD_PATH
+		subprocess.Popen(r'explorer /select,"{}"'.format(p)
 	def about(self):
 		message = """
 		NSFW Game Manager by Dogeek

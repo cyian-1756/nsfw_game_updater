@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 import subprocess
 import zipfile
 import logging
+import sys
 
 from constants import *
 from functions import *
@@ -27,9 +28,11 @@ from download_thread import *
 from add_new import AddNewGUI
 from get_from_reddit import GetFromRedditGUI
 from mega_downloader import MegaDownloader
+from utils import *
 
 logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
-
+sys.stdout = LoggerWriter(logging.debug)
+sys.stderr = LoggerWriter(logging.warning)
 
 class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
 	def __init__(self, master=None):
@@ -254,7 +257,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				return
 	def open_explorer(self):
 		p = DOWNLOAD_PATH if ":\\" in DOWNLOAD_PATH else os.getcwd()+DOWNLOAD_PATH
-		subprocess.Popen(r'explorer /select,"{}"'.format(p)
+		subprocess.Popen(r'explorer /select,"{}"'.format(p))
 	def about(self):
 		message = """
 		NSFW Game Manager by Dogeek
@@ -465,7 +468,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 							d = r.headers['content-disposition']
 							name = re.findall("filename=(.+)", d)[0]
 						except KeyError as e:
-							logging.warning("Error on file downloading, name:{}, error :{}".format(game_json["name"], e))
+							logging.warning("Error on file downloading, name:{}, error :{}".format(game_json["game"], e))
 							name = url.split("/")[-1:][0]
 							if size is None:
 								size = 5e6

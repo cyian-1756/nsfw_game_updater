@@ -11,11 +11,15 @@ separator = "-"
 platform = system().lower()
 version = args.version
 
+excluded_files = ['config.cfg', 'log.log']
+excluded_dirs = ["downloads", "install"]
+
 def zipdir(path, ziph):
 	# ziph is zipfile handle
 	for root, dirs, files in os.walk(path):
-		for file in files:
-			ziph.write(os.path.join(root, file))
+		for file_ in files:
+			if file_ not in excluded_files:
+				ziph.write(os.path.join(root, file_))
 
 filename = separator.join([app_name, version, platform])+".zip"
 with zipfile.ZipFile(filename, 'w') as myzip:

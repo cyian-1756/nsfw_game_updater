@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 import subprocess
 import zipfile
 import logging
+import sys
 
 from constants import *
 from functions import *
@@ -27,9 +28,11 @@ from download_thread import *
 from add_new import AddNewGUI
 from get_from_reddit import GetFromRedditGUI
 from mega_downloader import MegaDownloader
+from utils import *
 
 logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
-
+sys.stdout = LoggerWriter(logging.debug)
+sys.stderr = LoggerWriter(logging.warning)
 
 class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
 	def __init__(self, master=None):
@@ -90,6 +93,16 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		editmenu.add_command(label="Open Reddit Scraper", command=self.open_reddit_scraper)
 		editmenu.add_command(label="Save database locally", command=self.save_database)
 		editmenu.add_command(label="Remove local database", command=self.remove_local_db)
+		toolsmenu = tk.Menu(self)
+		toolsdict = {
+		"unrpyc":"open:https://github.com/CensoredUsername/unrpyc/releases",
+		"RPG Maker RTP":"open:http://www.rpgmakerweb.com/download/additional/run-time-packages",
+		"Adobe AIR": "open:https://get.adobe.com/fr/air/",
+		"Adobe Shockwave Flash Player": "open:https://get.adobe.com/fr/shockwave/",
+		"Unity Web Player" : "open:https://unity3d.com/fr/webplayer"
+		}
+		for key, value in toolsdict.items():
+			toolsmenu.add_command(label="Download {}".format(key), command=lambda x=value:self.download_tool(x))
 		helpmenu = tk.Menu(self)
 		helpmenu.add_command(label="About", command=self.about)
 		helpmenu.add_command(label="Help", command=self.help)
@@ -97,6 +110,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.menubar.add_cascade(label="File", menu=filemenu)
 		self.menubar.add_cascade(label="Edit", menu=editmenu)
 		self.menubar.add_command(label="Options", command=self.open_options)
+		self.menubar.add_cascade(label="Tools/Runtimes", menu=toolsmenu)
 		self.menubar.add_cascade(label="?", menu=helpmenu)
 		self.master.config(menu=self.menubar)
 
@@ -242,7 +256,8 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				webbrowser.open(link.get('href'), new=2)
 				return
 	def open_explorer(self):
-		subprocess.Popen(r'explorer /select,"{}"'.format(DOWNLOAD_PATH if DOWNLOAD_PATH != "" else os.getcwd()+"/"))
+		p = DOWNLOAD_PATH if ":\\" in DOWNLOAD_PATH else os.getcwd()+DOWNLOAD_PATH
+		subprocess.Popen(r'explorer /select,"{}"'.format(p))
 	def about(self):
 		message = """
 		NSFW Game Manager by Dogeek
@@ -289,6 +304,14 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			webbrowser.open(game_json["graphtreon"], new=2)
 		pass
 #Utility methods
+	def download_tool(self, url):
+		if url.startswith("open:"):
+			webbrowser.open(url.split("open:")[1], new=2)
+		else:
+			r = requests.get(url, stream=True)
+			with open(os.getcwd()+SEP+"tools"+SEP+url.split("/")[-1], 'wb') as f:
+				for chunk in r.iter_content(chunk_size=CHUNKSIZE):
+					f.write(chunk)
 	def add_games_to_tree(self, games=None):
 		if games is None:
 			for i, info in enumerate(self.json_data):
@@ -445,7 +468,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 							d = r.headers['content-disposition']
 							name = re.findall("filename=(.+)", d)[0]
 						except KeyError as e:
-							logging.warning("Error on file downloading, name:{}, error :{}".format(game_json["name"], e))
+							logging.warning("Error on file downloading, name:{}, error :{}".format(game_json["game"], e))
 							name = url.split("/")[-1:][0]
 							if size is None:
 								size = 5e6

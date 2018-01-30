@@ -36,7 +36,7 @@ sys.stdout = LoggerWriter(logging.debug)
 sys.stderr = LoggerWriter(logging.warning)
 
 class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
-	def __init__(self, master=None):
+	def __init__(self, master=None, from_github=False):
 		tk.Frame.__init__(self,master)
 		self.master = master
 		try:
@@ -44,7 +44,11 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			self.json_data = json.loads(_jsonfile.read())
 			_jsonfile.close()
 		except FileNotFoundError:
-			self.json_data = requests.get("https://raw.githubusercontent.com/cyian-1756/nsfw_game_updater/master/games.json").json()
+			if from_github:
+				self.json_data = requests.get("https://raw.githubusercontent.com/cyian-1756/nsfw_game_updater/master/games.json").json()
+			else:
+				with SQLHandler() as handler:
+					self.json_data = handler.retrieve_json("main")
 
 		self.downloaded_games = {} if DOWNLOADED_GAMES is None else DOWNLOADED_GAMES
 		self.platformToDownload = tk.StringVar()

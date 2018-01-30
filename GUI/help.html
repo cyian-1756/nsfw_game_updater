@@ -1,34 +1,152 @@
 <html>
 	<head>
-
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script>
+			function onClickDisplay(id)
+			{
+			var ids = ['intro', 'how-to', 'windows', 'about', 'license', 'features'];
+			if(document.getElementById(id).style.display == "none")
+			{
+				document.getElementById(id).style.display = "block";
+				for (var i = 0; i<6; i++)
+				{
+					if (ids[i] != id)
+					{
+						document.getElementById(ids[i]).style.display = "none";
+					}
+				}
+			}
+			}
+		</script>
+		<style>
+			#navigation {
+				width: 200px;
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				float:left;
+				position:fixed;
+			}
+			#navigation li {
+				background: #AAAAAA ;
+				color: #fff ;
+				border: 1px solid #600 ;
+				margin-bottom: 1px ;
+			}
+			#navigation li span {
+				display: block ;
+				background: #AAAAAA ;
+				color: #fff ;
+				font: 1em "Trebuchet MS",Arial,sans-serif ;
+				line-height: 1em ;
+				text-align: center ;
+				text-decoration: none ;
+				padding: 4px 0 ;
+			}
+			#navigation li span:hover, #navigation li span:focus, #navigation li span:active {
+				background: #999999 ;
+				text-decoration: none ;
+				cursor: pointer;
+			}
+			#main{
+				position:absolute;
+				left:250px;
+			}
+		</style>
 	</head>
 	<body>
-		<h1>Help for NSFW Game Manager</h1>
+	
+		<ul id="navigation">
+			<li><span onclick="onClickDisplay('intro')" title="Introduction">Introduction</span></li>
+			<li><span onclick="onClickDisplay('how-to')" title="How to use">How to use</a></li>
+			<li><span onclick="onClickDisplay('features')" title="Features">Features</a></li>
+			<li><span onclick="onClickDisplay('windows')" title="Windows">Windows</a></li>
+			<li><span onclick="onClickDisplay('about')" title="About">About</a></li>
+			<li><span onclick="onClickDisplay('license')" title="License">License</a></li>
+		</ul>
+		<div id="main">
+			<div id = "intro">
+				<h1>Help for NSFW Game Manager</h1>
+				<p>
+					This is the help for NSFW Game Manager<br/>
+					This project allows people to keep track of NSFW games they enjoy.
+					The latest GUI release is on <a href='https://github.com/cyian-1756/nsfw_game_updater/releases'>github</a><br/>
+					To be able to edit the database, you'll need to fill out <a href="https://goo.gl/forms/6o7RpfWlEM6DyGRs2">this form</a>. <br/>
+					You can also open a pull request on github if you make database changes, we'll review it, and merge it if no errors have been found.
+				</p>
+			</div>
+			<div id="how-to" style="display:none;">
+				<h1>How to Use</h1>
+				<h2>Keybindings</h2>
+				<p>
+					CTRL+C : allows you to copy the game info to your clipboard<br/>
+					CTRL+D : copies the download link for your platform, according to the platform combobox, at the bottom of the screen.<br/>
+					CTRL+W : Mark a game as downloaded, to check if the game has updates<br/>
+				</p>
+			</div>
+			<div id="windows" style="display:none;">
+				<h1>Top-level windows description</h1>
+				<h2>Options Window</h2>
+				<p>
+					The options window allows you to resize and choose an installation/download path. It also allows you to setup your accounts for downloading the files besides the provided (default) ones<br/>
+					You may setup these acounts in the "Advanced" tab of the options window.
+				</p>
+				<h2>Adding a New Game</h2>
+				<p>
+					You may add a new game by clicking the "Add New Game" item in the File menu.<br/>
+					Fill in the fields, all of them are required. If a game doesn't support a particular operating system, fill in a dash ("-") instead of the link.<br/>
+					If some fields are left void, the game will <em>not</em> be saved to the database.
+				</p>
+				<h2>Editing an existing Game</h2>
+				<p>
+					You may edit existing games by going in the "Edit>Edit Selected Entry" menu. It will open a window similar to the "Add new game" window, you can edit from there and click "Ok" to save your changes
+				</p>
+			</div>
+			<div id="features" style="display:none;">
+				<h1>Features :</h1>
 
-		<p>
-			This is the help for NSFW Game Manager<br/>
-		</p>
-		<h1>How to Use</h1>
-		<h2>Keybindings</h2>
-		<p>
-			CTRL+C : allows you to copy the game info to your clipboard<br/>
-			CTRL+D : copies the download link for your platform, according to the platform combobox, at the bottom of the screen.<br/>
-			CTRL+W : Mark a game as downloaded, to check if the game has updates<br/>
-		</p>
-		<h2>Options Window</h2>
-		<p>
-			The options window allows you to resize and choose an installation/download path. It also allows you to setup your accounts for downloading the files besides the provided (default) ones<br/>
-			You may setup these acounts in the "Advanced" tab of the options window.
-		</p>
-		<h2>Adding a New Game</h2>
-		<p>
-			You may add a new game by clicking the "Add New Game" item in the File menu.<br/>
-			Fill in the fields, all of them are required. If a game doesn't support a particular operating system, fill in a dash ("-") instead of the link.<br/>
-			If some fields are left void, the game will <em>not</em> be saved to the database.
-		</p>
-		<h2>Editing an existing Game</h2>
-		<p>
-			You may edit existing games by going in the "Edit>Edit Selected Entry" menu. It will open a window similar to the "Add new game" window, you can edit from there and click "Ok" to save your changes
-		</p>
+				<h2>Implemented :</h2>
+				<ul>
+				<li>Adding new games to the database</li>
+				<li>Downloading and Updating games from the following sources : mega.nz, patreon, dropbox, google drive, itch.io and via apache.</li>
+				<li>Editing games in the database</li>
+				<li>Copying the links to the clipboard</li>
+				<li>Copying the whole line's data to the clipboard</li>
+				<li>check for game updates</li>
+				<li>Sorting games by genre, developer, etc.</li>
+				<li>A super awesome help page (this!)</li>
+				<li>Options to set the window size, the download path etc</li>
+				<li>Syncing every user's databases</li>
+				<li>Automatic unzipping/install of the games to the specified installation directory</li>
+				<li>Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database</li>
+				</ul>
+				<h2>Planned :</h2>
+				<ul>
+				<li>Scraping games' websites to look for updates.</li>
+				<li>Auto-Updating the database</li>
+				<li>Game rating (each user may rate the game, shown rating will be the average rating)</li>
+				<li>Patreon integration to pledge from the app itself</li>
+				</ul>
+			</div>
+			<div id="about" style="display:none;">
+				<h1>About :</h1>
+				<p>
+					NSFW Game Manager by Dogeek &amp; cyan-1756.<br/>
+					See on <a href="https://github.com/cyian-1756/nsfw_game_updater/">Github</a> and <a href="http://www.reddit.com/r/NSFWGameManager">Reddit</a><br/>
+					GUI Code by Dogeek.<br/>
+					Database by cyan-1756.<br/>
+					
+				</p>
+			</div>
+			<div id="license" style="display:none;">
+				<h1>License :</h1>
+				<p>
+					You may copy, distribute and modify the software as long as you track changes/dates in source files. <br/>
+					Any modifications to or software including (via compiler) GPL-licensed code must also be made available <br/>
+					under the GPL along with build &amp; install instructions.<br/><br/>
+					See the <a href="https://www.gnu.org/licenses/gpl-3.0.fr.html">full GPL-3.0 license here</a><br/>
+				</p>
+			</div>
+		</div>
 	</body>
 </html>

@@ -11,7 +11,7 @@ import shutil
 import tempfile
 import base64
 import struct
-from threading import Thread, Lock, Condition
+from threading import Thread, Lock, Condition, Event
 import platform
 
 from constants import *

@@ -35,12 +35,7 @@ class GetFromRedditGUI(tk.Toplevel):
 		title = self.listbox.get(self.listbox.curselection())
 		for sub in self.subs:
 			if title == sub.title:
-				to_print = \
-				"""
-				Title : {}
-				Text : {}
-				URL : {}
-				""".format(sub.title, sub.selftext, sub.url)
+				to_print = """\nTitle : {}\nText : {}\nURL : {}""".format(sub.title, sub.selftext, sub.url)
 		self.text_display.insert(tk.INSERT, to_print)
 
 	def look_for_submissions(self):

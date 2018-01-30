@@ -1,4 +1,4 @@
-from threading import Thread, Lock, Condition
+from threading import Thread, Lock, Condition, Event
 import platform
 import os
 
@@ -17,17 +17,19 @@ class DownloadThread(Thread):
 		self.callback = callback
 		self.paused = False
 		self.pause_cond = Condition(Lock())
+		self.stop_event = Event()
 	def run(self):
-		with open(self.path+self.name, 'wb') as f:
-			for chunk in self.get_request.iter_content(chunk_size=self.chunks):
-				with lock:
-					with self.pause_cond:
-						while self.paused:
-							self.pause_cond.wait()
-						self.progress_ += 1
-						self.progress = int(self.progress_/(self.size//self.chunks)*100)
-						f.write(chunk)
-		self.callback(self.name, self.path)
+		while not self.stop_event.isSet( ):
+			with open(self.path+self.name, 'wb') as f:
+				for chunk in self.get_request.iter_content(chunk_size=self.chunks):
+					with lock:
+						with self.pause_cond:
+							while self.paused:
+								self.pause_cond.wait()
+							self.progress_ += 1
+							self.progress = int(self.progress_/(self.size//self.chunks)*100)
+							f.write(chunk)
+			self.callback(self.name, self.path)
 
 	def pause(self):
 		self.paused = True
@@ -45,7 +47,7 @@ class DownloadThread(Thread):
 		self.pause_cond.release()
 
 	def stop(self):
-		self.paused = True
+		self.stop_event.set()
 		self.progress = 0
-		os.remove(self.path+self.name)
+		#os.remove(self.path+self.name)
 		self.daemon = False

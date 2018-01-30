@@ -166,6 +166,7 @@ class MegaDownloader(Thread):
 
 		self.paused = False
 		self.pause_cond = Condition(Lock())
+		self.stop_event = Event()
 		pass
 
 	def _api_request(self, data):
@@ -201,80 +202,81 @@ class MegaDownloader(Thread):
 			raise RequestError('Url key missing')
 
 	def run(self):
-		path = self._parse_url(self.url).split('!')
-		file_id = path[0]
-		file_key = path[1]
-		file_key = base64_to_a32(file_key)
-		file_data = self._api_request({'a': 'g', 'g': 1, 'p': file_id})
-		k = (file_key[0] ^ file_key[4], file_key[1] ^ file_key[5],
-			 file_key[2] ^ file_key[6], file_key[3] ^ file_key[7])
-		iv = file_key[4:6] + (0, 0)
-		meta_mac = file_key[6:8]
+		while not self.stop_event.isSet( ):
+			path = self._parse_url(self.url).split('!')
+			file_id = path[0]
+			file_key = path[1]
+			file_key = base64_to_a32(file_key)
+			file_data = self._api_request({'a': 'g', 'g': 1, 'p': file_id})
+			k = (file_key[0] ^ file_key[4], file_key[1] ^ file_key[5],
+				 file_key[2] ^ file_key[6], file_key[3] ^ file_key[7])
+			iv = file_key[4:6] + (0, 0)
+			meta_mac = file_key[6:8]
 
-		# Seems to happens sometime... When  this occurs, files are
-		# inaccessible also in the official also in the official web app.
-		# Strangely, files can come back later.
-		if 'g' not in file_data:
-			raise RequestError('File not accessible anymore')
-		file_url = file_data['g']
-		file_size = file_data['s']
-		attribs = base64_url_decode(file_data['at'])
-		attribs = decrypt_attr(attribs, k)
-		file_name = attribs['n']
+			# Seems to happens sometime... When  this occurs, files are
+			# inaccessible also in the official also in the official web app.
+			# Strangely, files can come back later.
+			if 'g' not in file_data:
+				raise RequestError('File not accessible anymore')
+			file_url = file_data['g']
+			file_size = file_data['s']
+			attribs = base64_url_decode(file_data['at'])
+			attribs = decrypt_attr(attribs, k)
+			file_name = attribs['n']
 
-		input_file = requests.get(file_url, stream=True).raw
+			input_file = requests.get(file_url, stream=True).raw
 
-		dest_path = self.path
+			dest_path = self.path
 
-		temp_output_file = tempfile.NamedTemporaryFile(mode='w+b', prefix='megapy_', delete=False)
+			temp_output_file = tempfile.NamedTemporaryFile(mode='w+b', prefix='megapy_', delete=False)
 
-		k_str = a32_to_str(k)
-		counter = Counter.new(
-			128, initial_value=((iv[0] << 32) + iv[1]) << 64)
-		aes = AES.new(k_str, AES.MODE_CTR, counter=counter)
+			k_str = a32_to_str(k)
+			counter = Counter.new(
+				128, initial_value=((iv[0] << 32) + iv[1]) << 64)
+			aes = AES.new(k_str, AES.MODE_CTR, counter=counter)
 
-		mac_str = '\0' * 16
-		mac_encryptor = AES.new(k_str, AES.MODE_CBC, mac_str)
-		iv_str = a32_to_str([iv[0], iv[1], iv[0], iv[1]])
+			mac_str = '\0' * 16
+			mac_encryptor = AES.new(k_str, AES.MODE_CBC, mac_str)
+			iv_str = a32_to_str([iv[0], iv[1], iv[0], iv[1]])
 
-		for chunk_start, chunk_size in get_chunks(file_size):
-			with lock:
-				with self.pause_cond:
-					while self.paused:
-						self.pause_cond.wait()
-					chunk = input_file.read(chunk_size)
-					chunk = aes.decrypt(chunk)
-					temp_output_file.write(chunk)
+			for chunk_start, chunk_size in get_chunks(file_size):
+				with lock:
+					with self.pause_cond:
+						while self.paused:
+							self.pause_cond.wait()
+						chunk = input_file.read(chunk_size)
+						chunk = aes.decrypt(chunk)
+						temp_output_file.write(chunk)
 
-					encryptor = AES.new(k_str, AES.MODE_CBC, iv_str)
-					for i in range(0, len(chunk)-16, 16):
+						encryptor = AES.new(k_str, AES.MODE_CBC, iv_str)
+						for i in range(0, len(chunk)-16, 16):
+							block = chunk[i:i + 16]
+							encryptor.encrypt(block)
+
+						#fix for files under 16 bytes failing
+						if file_size > 16:
+							i += 16
+						else:
+							i = 0
+
 						block = chunk[i:i + 16]
-						encryptor.encrypt(block)
+						if len(block) % 16:
+							block += b'\0' * (16 - (len(block) % 16))
+						mac_str = mac_encryptor.encrypt(encryptor.encrypt(block))
 
-					#fix for files under 16 bytes failing
-					if file_size > 16:
-						i += 16
-					else:
-						i = 0
+						file_info = os.stat(temp_output_file.name)
+						self.progress = int(int(file_info.st_size)/int(file_size)*100)
 
-					block = chunk[i:i + 16]
-					if len(block) % 16:
-						block += b'\0' * (16 - (len(block) % 16))
-					mac_str = mac_encryptor.encrypt(encryptor.encrypt(block))
+			file_mac = str_to_a32(mac_str)
 
-					file_info = os.stat(temp_output_file.name)
-					self.progress = int(int(file_info.st_size)/int(file_size)*100)
+			temp_output_file.close()
 
-		file_mac = str_to_a32(mac_str)
+			# check mac integrity
+			if (file_mac[0] ^ file_mac[1], file_mac[2] ^ file_mac[3]) != meta_mac:
+				raise ValueError('Mismatched mac')
 
-		temp_output_file.close()
-
-		# check mac integrity
-		if (file_mac[0] ^ file_mac[1], file_mac[2] ^ file_mac[3]) != meta_mac:
-			raise ValueError('Mismatched mac')
-
-		shutil.move(temp_output_file.name, dest_path + file_name)
-		self.callback(file_name, self.path)
+			shutil.move(temp_output_file.name, dest_path + file_name)
+			self.callback(file_name, self.path)
 
 	def pause(self):
 		self.paused = True
@@ -290,3 +292,9 @@ class MegaDownloader(Thread):
 		self.pause_cond.notify()
 		# Now release the lock
 		self.pause_cond.release()
+
+	def stop(self):
+		self.stop_event.set()
+		self.progress = 0
+		#os.remove(self.path+self.name)
+		self.daemon = False

@@ -20,6 +20,7 @@ import subprocess
 import zipfile
 import logging
 import sys
+import pymysql.err as pymysqlerr
 
 from constants import *
 from options import OptionGUI
@@ -36,6 +37,8 @@ sys.stderr = LoggerWriter(logging.warning)
 
 class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
 	def __init__(self, master=None, from_github=False):
+		logging.debug("Started NSFW Game Manager")
+		logging.debug("---------------------")
 		tk.Frame.__init__(self,master)
 		self.master = master
 		try:
@@ -46,8 +49,18 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			if from_github:
 				self.json_data = requests.get("https://raw.githubusercontent.com/cyian-1756/nsfw_game_updater/master/games.json").json()
 			else:
-				with SQLHandler() as handler:
-					self.json_data = handler.retrieve_json("main")
+				try:
+					with SQLHandler() as handler:
+						self.json_data = handler.retrieve_json("main")
+				except pymysqlerr.MySQLError() as e:
+					logging.error("PyMySQL Error : "+e)
+					logging.debug("Trying to get the db from github...")
+					try:
+						self.json_data = requests.get("https://raw.githubusercontent.com/cyian-1756/nsfw_game_updater/master/games.json").json()
+					except requests.ConnectionError() as e:
+						logging.error("Requests Error : "+e)
+						logging.debug("Cannot connect to github... Now exiting...")
+						self.on_closing()
 
 		self.downloaded_games = {} if DOWNLOADED_GAMES is None else DOWNLOADED_GAMES
 		self.platformToDownload = tk.StringVar()
@@ -282,14 +295,14 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		subprocess.Popen(r'explorer /select,"{}"'.format(p))
 	def about(self):
 		message = """
-		NSFW Game Manager by Dogeek
+		NSFW Game Manager GUI by Dogeek
 		For additional information, check out
-		https://github.com/cyian-1756/nsfw_game_updater
+		https://goo.gl/6LEQk9
 		License : GPL-3.0
 		"""
 		messagebox.showinfo("About", message)
 		pass
-		a
+
 	def edit_current_game(self):
 		if self.add_game_gui is None:
 			data = self.get_json_from_tree()
@@ -336,23 +349,15 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 					f.write(chunk)
 	def add_games_to_tree(self, games=None):
 		if games is None:
-			for i, info in enumerate(self.json_data):
-				if i != 0:
-					formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
-					info["visual_style"], info["animation"])
-					if "paid" in info["public_build"]:
-						self.treeview.insert('', 'end', values = formatted, tags=["paid"])
-					else:
-						self.treeview.insert('', 'end', values = formatted)
-		else:
-			for i, info in enumerate(games):
+			games=self.json_data
+		for i, info in enumerate(games):
+			if info["developer"] != "developer":
 				formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
 				info["visual_style"], info["animation"])
 				if "paid" in info["public_build"]:
 					self.treeview.insert('', 'end', values = formatted, tags=["paid"])
 				else:
 					self.treeview.insert('', 'end', values = formatted)
-		pass
 
 	def update_game_in_tree(self, game_json):
 		for item in self.treeview.get_children():
@@ -481,6 +486,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 							'DNT': '1'
 						}
 						response = requests.post(url, headers=headers)
+						print(response)
 						url = response.json()["url"]
 					r = requests.get(url, stream=True)
 					if r.status_code == 200:

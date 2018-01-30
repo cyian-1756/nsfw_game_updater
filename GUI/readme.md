@@ -13,7 +13,7 @@ The GUI has been made using the Tk/Tcl wrapper for python, tkinter.
 - Copying the whole line's data to the clipboard
 - check for game updates
 - Sorting games by genre, developer, etc.
-- A super duper ugly help page
+- A super awesome help page
 - Options to set the window size, the download path etc
 - Syncing every user's databases
 - Automatic unzipping/install of the games to the specified installation directory
@@ -23,17 +23,15 @@ The GUI has been made using the Tk/Tcl wrapper for python, tkinter.
 
 - Scraping games' websites to look for updates.
 - Auto-Updating the database
-- Improved Help page
 - Game rating (each user may rate the game, shown rating will be the average rating)
 - Patreon integration to pledge from the app itself
-- itch.io integration to buy/donate from the app itself
 
 # TO DO List :
 
 ## Fix :
 
 - [x] right click on an item doesn't really select it, and results in an error when trying to perform onSelect actions.
-- [ ] trying to move/resize the window is still a bit glitchy (window shaking, resize snapping back to where it was...)
+- [x] trying to move/resize the window is still a bit glitchy (window shaking, resize snapping back to where it was...)
 
 
 

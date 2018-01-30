@@ -53,7 +53,7 @@ The gui has been made using the Tk/Tcl wrapper tkinter.
 - Copying the whole line's data to the clipboard
 - check for game updates
 - Sorting games by genre, developer, etc.
-- A super duper ugly help page
+- A super awesome help page
 - Options to set the window size, the download path etc
 - Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database
 - Advanced/Simple view of the tree (to show only the relevant info)
@@ -67,7 +67,5 @@ The gui has been made using the Tk/Tcl wrapper tkinter.
 
 - Improve reddit integration to automatically enter the info into the database
 - Scraping games' websites to look for updates.
-- Improved Help page
 - Game rating (each user may rate the game, shown rating will be the average rating)
 - Patreon integration to pledge from the app itself
-- itch.io integration to buy/donate from the app itself

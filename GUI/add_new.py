@@ -25,9 +25,8 @@ def unshorten_url(url):
 	return resp.url
 
 def check_url(url):
-	if is_shortened(url):
-		return unshorten_url(url)
-	return url
+	regex = re.compile(r"/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/")
+	return regex.fullmatch(url)
 
 def game_exists(game_name, db=None):
 	if db is None:
@@ -60,10 +59,14 @@ def game_exists(game_name, db=None):
 # 	os.remove("temp_json")
 
 def add_new_game(json_to_add, is_new):
+	if "" in json_to_add.values():
+		raise DatabaseError("Some fields are left void. Please complete them and try again.")
 	handler = SQLHandler()
-	if is_new:
-		print(json.dumps(json_to_add))
-		handler.add_game(json_to_add)
+	try:
+		if is_new:
+			handler.add_game(json_to_add)
+	finally:
+		handler.connection.close()
 
 class AddNewGUI(tk.Toplevel):
 	def __init__(self, master = None, editdata=None):

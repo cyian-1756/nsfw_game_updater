@@ -26,6 +26,10 @@ try:
 except KeyError:
 	DOWNLOADED_GAMES = {}
 try:
+	USE_PENDING_DB = config["OPTIONS"]["USE_CONFIG_DB"].lower() in ("yes", "true", "t", "1", "y")
+except KeyError:
+	USE_PENDING_DB = False
+try:
 	CHUNKSIZE = int(config["OPTIONS"]["CHUNKSIZE"])
 except KeyError:
 	CHUNKSIZE = 1024

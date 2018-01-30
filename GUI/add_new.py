@@ -10,6 +10,7 @@ import requests
 
 from constants import *
 from exceptions import *
+from sql import SQLHandler
 
 def load_json():
 	with open('games.json') as jsonfile:
@@ -24,9 +25,8 @@ def unshorten_url(url):
 	return resp.url
 
 def check_url(url):
-	if is_shortened(url):
-		return unshorten_url(url)
-	return url
+	regex = re.compile(r"/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/")
+	return regex.fullmatch(url)
 
 def game_exists(game_name, db=None):
 	if db is None:
@@ -37,27 +37,36 @@ def game_exists(game_name, db=None):
 			return True
 	return False
 
+# def add_new_game(json_to_add, is_new):
+# 	"""
+# 		Adds a new game to the database, checking if a game named similarly is already present.
+# 		If a game is already in the database, raises a DatabaseError exception
+# 	"""
+# 	if "" in json_to_add.items():
+# 		raise DatabaseError("Some fields are left void. Please complete them and try again.")
+# 	with open("games.json") as jsonfile:
+# 		db = json.loads(jsonfile.read())
+# 	if game_exists(json_to_add["game"], db) and is_new:
+# 		raise DatabaseError("Game with that title and developer is already in DB")
+# 	json_list = []
+#
+# 	for sub_array in db:
+# 		json_list.append(sub_array)
+# 	json_list.append(json_to_add)
+# 	with open('temp_json', 'w', encoding="utf-8") as f:
+# 		 f.write(json.dumps(json_list, indent=4, sort_keys=True))
+# 	os.rename("temp_json", "games.json")
+# 	os.remove("temp_json")
+
 def add_new_game(json_to_add, is_new):
-	"""
-		Adds a new game to the database, checking if a game named similarly is already present.
-		If a game is already in the database, raises a DatabaseError exception
-	"""
-	if "" in json_to_add.items():
+	if "" in json_to_add.values():
 		raise DatabaseError("Some fields are left void. Please complete them and try again.")
-	with open("games.json") as jsonfile:
-		db = json.loads(jsonfile.read())
-	if game_exists(json_to_add["game"], db) and is_new:
-		raise DatabaseError("Game with that title and developer is already in DB")
-	json_list = []
-
-	for sub_array in db:
-		json_list.append(sub_array)
-	json_list.append(json_to_add)
-	with open('temp_json', 'w', encoding="utf-8") as f:
-		 f.write(json.dumps(json_list, indent=4, sort_keys=True))
-	os.rename("temp_json", "games.json")
-	os.remove("temp_json")
-
+	handler = SQLHandler()
+	try:
+		if is_new:
+			handler.add_game(json_to_add)
+	finally:
+		handler.connection.close()
 
 class AddNewGUI(tk.Toplevel):
 	def __init__(self, master = None, editdata=None):

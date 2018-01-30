@@ -28,6 +28,7 @@ from download_thread import *
 from add_new import AddNewGUI
 from get_from_reddit import GetFromRedditGUI
 from mega_downloader import MegaDownloader
+from sql import SQLHandler
 from utils import *
 
 logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
@@ -91,8 +92,11 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		editmenu.add_command(label="Add New Game", command=self.add_new_game)
 		editmenu.add_command(label="Edit Selected Entry", command=self.edit_current_game)
 		editmenu.add_command(label="Open Reddit Scraper", command=self.open_reddit_scraper)
-		editmenu.add_command(label="Save database locally", command=self.save_database)
-		editmenu.add_command(label="Remove local database", command=self.remove_local_db)
+		editmenu.add_command(label="Save main database locally", command=self.save_database)
+		editmenu.add_command(label="Remove local main database", command=self.remove_local_db)
+		editmenu.add_separator()
+		editmenu.add_command(label="Save pending database locally", command=self.save_pending_database)
+		editmenu.add_command(label="Remove local pending database", command=self.remove_local_pending_db)
 		toolsmenu = tk.Menu(self)
 		toolsdict = {
 		"unrpyc":"open:https://github.com/CensoredUsername/unrpyc/releases",
@@ -149,6 +153,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.treeview.tag_configure('has_update', background="red")
 		self.treeview.tag_configure('paid', background="AntiqueWhite1")
 		self.add_games_to_tree()
+		self.update_treeview()
 
 #EVENT METHODS
 	def on_closing(self):
@@ -157,6 +162,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		config["OPTIONS"]["DOWNLOAD_PATH"] = DOWNLOAD_PATH
 		config["OPTIONS"]["INSTALLATION_PATH"] = INSTALLATION_PATH
 		config["OPTIONS"]["CHUNKSIZE"] = str(CHUNKSIZE)
+		config["OPTIONS"]["USE_PENDING_DB"] = str(USE_PENDING_DB)
 		config["DOWNLOADED_GAMES"] = self.downloaded_games
 
 		with open('config.cfg', 'w') as configfile:
@@ -205,6 +211,9 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.columns = columns
 		for column in columns:
 			self.treeview.column(column, anchor = tk.CENTER)
+		if USE_PENDING_DB:
+			with SQLHandler as handler:
+				self.add_games_to_tree(handler.retrieve_json())
 
 	def custom_loop(self):
 		if self.thread is not None:
@@ -239,6 +248,14 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 	def remove_local_db(self):
 		if messagebox.askyesno(title="Remove local database", message="Are you sure ?"):
 			os.remove("games.json")
+
+	def save_pending_database(self):
+		with SQLHandler() as handler:
+			handler.retrieve_json(write_local=True)
+
+	def remove_local_pending_db(self):
+		if messagebox.askyesno(title="Remove local database", message="Are you sure ?"):
+			os.remove("pending_approval.json")
 
 	def mark_as_downloaded(self):
 		game_json = self.get_json_from_tree()

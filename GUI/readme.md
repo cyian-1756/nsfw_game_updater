@@ -90,3 +90,4 @@ The GUI has been made using the Tk/Tcl wrapper for python, tkinter.
 - beautifulsoup4
 - patreon
 - pycrypto (not pycryptodome)
+- pymysql

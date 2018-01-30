@@ -17,6 +17,8 @@ class OptionGUI(tk.Toplevel):
 		self.installationpath_var.set(INSTALLATION_PATH)
 		self.chunksize_var = tk.StringVar()
 		self.chunksize_var.set(str(CHUNKSIZE))
+		self.use_pending_var = tk.IntVar()
+		self.use_pending_var.set(int(USE_PENDING_DB))
 		self.config()
 		pass
 
@@ -40,6 +42,9 @@ class OptionGUI(tk.Toplevel):
 		tk.Spinbox(self, textvariable=self.chunksize_var, from_=256000, to=4096000, increment=256000).grid(row=3, column=1)
 		tk.Label(self, text="RAM used to download :").grid(row=3, column=0)
 
+		tk.Checkbutton(self, variable=self.use_pending_var).grid(row=4, column=1)
+		tk.Label(self, text="Use Pending Database :").grid(row=4, column=0)
+
 		self.ok_button = tk.Button(self, text="Save", command=self.onOkButton)
 		self.cancel_button = tk.Button(self, text="Cancel", command=self.onCancelButton)
 		self.ok_button.grid(column=0, row=6)
@@ -61,10 +66,12 @@ class OptionGUI(tk.Toplevel):
 		global DOWNLOAD_PATH
 		global INSTALLATION_PATH
 		global CHUNKSIZE
+		global USE_PENDING_DB
 
 		INSTALLATION_PATH = self.installationpath_var.get()
 		DOWNLOAD_PATH = self.downloadpath_var.get()
 		CHUNKSIZE = int(self.chunksize_var.get())
+		USE_PENDING_DB = self.use_pending_var.get()==1
 
 		self.master.update_treeview()
 		self.onCancelButton()

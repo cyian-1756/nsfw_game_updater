@@ -8,6 +8,7 @@ other/
 *.7z
 *.cfg
 *.bak
+*.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

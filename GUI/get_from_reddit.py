@@ -3,7 +3,6 @@ import tkinter.ttk as ttk
 
 from reddit_scraper import RedditScraper
 from constants import *
-from functions import *
 
 class GetFromRedditGUI(tk.Toplevel):
 	def __init__(self, master=None):

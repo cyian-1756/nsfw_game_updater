@@ -11,10 +11,12 @@ import shutil
 import tempfile
 import base64
 import struct
-from threading import Thread, Lock
+from threading import Thread, Lock, Condition
 import platform
 
-lock = Lock()
+from constants import *
+from utils import *
+from exceptions import *
 
 
 def aes_cbc_encrypt(data, key):
@@ -140,21 +142,6 @@ def make_id(length):
 		text += random.choice(possible)
 	return text
 
-class ValidationError(Exception):
-	"""
-	Error in validation stage
-	"""
-	pass
-
-
-class RequestError(Exception):
-	"""
-	Error in API request
-	"""
-	#TODO add error response messages
-	pass
-
-
 
 class MegaDownloader(Thread):
 	def __init__(self, url, dest_path, callback):
@@ -176,6 +163,9 @@ class MegaDownloader(Thread):
 		self.sid = None
 		self.sequence_num = random.randint(0, 0xFFFFFFFF)
 		self.request_id = make_id(10)
+
+		self.paused = False
+		self.pause_cond = Condition(Lock())
 		pass
 
 	def _api_request(self, data):
@@ -249,28 +239,31 @@ class MegaDownloader(Thread):
 
 		for chunk_start, chunk_size in get_chunks(file_size):
 			with lock:
-				chunk = input_file.read(chunk_size)
-				chunk = aes.decrypt(chunk)
-				temp_output_file.write(chunk)
+				with self.pause_cond:
+					while self.paused:
+						self.pause_cond.wait()
+					chunk = input_file.read(chunk_size)
+					chunk = aes.decrypt(chunk)
+					temp_output_file.write(chunk)
 
-				encryptor = AES.new(k_str, AES.MODE_CBC, iv_str)
-				for i in range(0, len(chunk)-16, 16):
+					encryptor = AES.new(k_str, AES.MODE_CBC, iv_str)
+					for i in range(0, len(chunk)-16, 16):
+						block = chunk[i:i + 16]
+						encryptor.encrypt(block)
+
+					#fix for files under 16 bytes failing
+					if file_size > 16:
+						i += 16
+					else:
+						i = 0
+
 					block = chunk[i:i + 16]
-					encryptor.encrypt(block)
+					if len(block) % 16:
+						block += b'\0' * (16 - (len(block) % 16))
+					mac_str = mac_encryptor.encrypt(encryptor.encrypt(block))
 
-				#fix for files under 16 bytes failing
-				if file_size > 16:
-					i += 16
-				else:
-					i = 0
-
-				block = chunk[i:i + 16]
-				if len(block) % 16:
-					block += b'\0' * (16 - (len(block) % 16))
-				mac_str = mac_encryptor.encrypt(encryptor.encrypt(block))
-
-				file_info = os.stat(temp_output_file.name)
-				self.progress = int(int(file_info.st_size)/int(file_size)*100)
+					file_info = os.stat(temp_output_file.name)
+					self.progress = int(int(file_info.st_size)/int(file_size)*100)
 
 		file_mac = str_to_a32(mac_str)
 
@@ -282,3 +275,18 @@ class MegaDownloader(Thread):
 
 		shutil.move(temp_output_file.name, dest_path + file_name)
 		self.callback(file_name, self.path)
+
+	def pause(self):
+		self.paused = True
+		# If in sleep, we acquire immediately, otherwise we wait for thread
+		# to release condition. In race, worker will still see self.paused
+		# and begin waiting until it's set back to False
+		self.pause_cond.acquire()
+
+	#should just resume the thread
+	def resume(self):
+		self.paused = False
+		# Notify so thread will wake after lock released
+		self.pause_cond.notify()
+		# Now release the lock
+		self.pause_cond.release()

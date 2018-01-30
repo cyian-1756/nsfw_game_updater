@@ -22,7 +22,6 @@ import logging
 import sys
 
 from constants import *
-from functions import *
 from options import OptionGUI
 from download_thread import *
 from add_new import AddNewGUI
@@ -125,13 +124,15 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.init_treeview()
 
 		self.download_button = tk.Button(self, text="Download/Update", command=self.download_selected_game)
-		self.download_button.grid(row=1, column=0)
+		self.download_button.grid(row=1, column=0, padx=0)
+		tk.Button(self, text="Pause/Resume", command=self.pause_resume_download).grid(row=1, column=1, padx=0)
 		self.platformCombo = ttk.Combobox(self, textvariable = self.platformToDownload, state='readonly', values=("Automatic", "Windows", "Linux", "MacOS", "Android"))
-		self.platformCombo.grid(row=1, column=1)
+		self.platformCombo.grid(row=1, column=2)
 		self.platformCombo.current(0)
 		self.progress = tk.DoubleVar()
 		self.progressbar = ttk.Progressbar(self, mode="determinate", maximum=100, variable=self.progress)
-		self.progressbar.grid(row=1, column=2, columnspan=13, sticky="ew")
+		self.progressbar.grid(row=1, column=3, columnspan=11, sticky="ew", padx=0)
+		tk.Button(self, text="Cancel", command=self.cancel_download).grid(row=1, column=14, padx=0)
 
 		self.custom_loop()
 		pass
@@ -502,6 +503,22 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				self.thread.daemon = True
 				self.thread.start()
 		#self.downloaded_games[game_json["game"]] = version
+		pass
+	def pause_resume_download(self):
+		try:
+			if self.thread.paused:
+				self.thread.resume()
+			else:
+				self.thread.pause()
+		except AttributeError:
+			messagebox.showerror("Error", message="You must be downloading a game.")
+		pass
+
+	def cancel_download(self):
+		try:
+			self.thread.stop()
+		except AttributeError:
+			messagebox.showerror("Error", message="You must be downloading a game.")
 		pass
 	pass
 

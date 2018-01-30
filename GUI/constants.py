@@ -1,11 +1,14 @@
 import configparser
 import os
 import platform
+from threading import Lock
 
 if platform.system().lower() == "windows":
 	SEP = "\\"
 else:
 	SEP = "/"
+
+lock = Lock()
 
 config = configparser.ConfigParser()
 config.read("config.cfg")

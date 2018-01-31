@@ -39,8 +39,9 @@ class OptionGUI(tk.Toplevel):
 		self.installationpath_button.grid(row=2, column=2)
 		tk.Label(self, text="Installation Path :").grid(row=2, column=0)
 
-		tk.Spinbox(self, textvariable=self.chunksize_var, from_=256000, to=4096000, increment=256000).grid(row=3, column=1)
+		tk.Spinbox(self, textvariable=self.chunksize_var, from_=256, to=4096, increment=256).grid(row=3, column=1)
 		tk.Label(self, text="RAM used to download :").grid(row=3, column=0)
+		tk.Label(self, text="MB").grid(row=3, column=2)
 
 		tk.Checkbutton(self, variable=self.use_pending_var).grid(row=4, column=1)
 		tk.Label(self, text="Use Pending Database :").grid(row=4, column=0)
@@ -70,7 +71,7 @@ class OptionGUI(tk.Toplevel):
 
 		INSTALLATION_PATH = self.installationpath_var.get()
 		DOWNLOAD_PATH = self.downloadpath_var.get()
-		CHUNKSIZE = int(self.chunksize_var.get())
+		CHUNKSIZE = int(self.chunksize_var.get())*1000000
 		USE_PENDING_DB = self.use_pending_var.get()==1
 
 		self.master.update_treeview()

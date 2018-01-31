@@ -20,6 +20,8 @@ def zipdir(path, ziph):
 		for file_ in files:
 			if file_ not in excluded_files:
 				ziph.write(os.path.join(root, file_))
+		for dir_ in dirs:
+			ziph.write(os.path.join(root, dir_))
 
 filename = separator.join([app_name, version, platform])+".zip"
 with zipfile.ZipFile(filename, 'w') as myzip:

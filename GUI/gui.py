@@ -20,9 +20,9 @@ import subprocess
 import zipfile
 import logging
 import sys
+import pymysql.err as pymysqlerr
 
 from constants import *
-from functions import *
 from options import OptionGUI
 from download_thread import *
 from add_new import AddNewGUI
@@ -35,8 +35,25 @@ logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(
 sys.stdout = LoggerWriter(logging.debug)
 sys.stderr = LoggerWriter(logging.warning)
 
-class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
+class GUI(tk.Frame):
+	@classmethod
+	def main(cls):
+		root = tk.Tk()
+		root.title("NSFW Game Manager")
+		root.iconbitmap(default="favicon.ico")
+		tk.Grid.rowconfigure(root, 0, weight=1)
+		tk.Grid.columnconfigure(root, 0, weight=1)
+		gui = cls(root)
+		for i in range(50):
+			tk.Grid.rowconfigure(gui, i, weight=1)
+			tk.Grid.columnconfigure(gui, i, weight=1)
+		gui.grid(row=0,column=0, sticky="nsew")
+		gui.mainloop()
+		return gui
+
 	def __init__(self, master=None, from_github=False):
+		logging.debug("Started NSFW Game Manager")
+		logging.debug("---------------------")
 		tk.Frame.__init__(self,master)
 		self.master = master
 		try:
@@ -47,8 +64,18 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 			if from_github:
 				self.json_data = requests.get("https://raw.githubusercontent.com/cyian-1756/nsfw_game_updater/master/games.json").json()
 			else:
-				with SQLHandler() as handler:
-					self.json_data = handler.retrieve_json("main")
+				try:
+					with SQLHandler() as handler:
+						self.json_data = handler.retrieve_json("main")
+				except pymysqlerr.MySQLError() as e:
+					logging.error("PyMySQL Error : "+e)
+					logging.debug("Trying to get the db from github...")
+					try:
+						self.json_data = requests.get("https://raw.githubusercontent.com/cyian-1756/nsfw_game_updater/master/games.json").json()
+					except requests.ConnectionError() as e:
+						logging.error("Requests Error : "+e)
+						logging.debug("Cannot connect to github... Now exiting...")
+						self.on_closing()
 
 		self.downloaded_games = {} if DOWNLOADED_GAMES is None else DOWNLOADED_GAMES
 		self.platformToDownload = tk.StringVar()
@@ -125,13 +152,15 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		self.init_treeview()
 
 		self.download_button = tk.Button(self, text="Download/Update", command=self.download_selected_game)
-		self.download_button.grid(row=1, column=0)
+		self.download_button.grid(row=1, column=0, padx=0)
+		tk.Button(self, text="Pause/Resume", command=self.pause_resume_download).grid(row=1, column=1, padx=0)
 		self.platformCombo = ttk.Combobox(self, textvariable = self.platformToDownload, state='readonly', values=("Automatic", "Windows", "Linux", "MacOS", "Android"))
-		self.platformCombo.grid(row=1, column=1)
+		self.platformCombo.grid(row=1, column=2)
 		self.platformCombo.current(0)
 		self.progress = tk.DoubleVar()
 		self.progressbar = ttk.Progressbar(self, mode="determinate", maximum=100, variable=self.progress)
-		self.progressbar.grid(row=1, column=2, columnspan=13, sticky="ew")
+		self.progressbar.grid(row=1, column=3, columnspan=11, sticky="ew", padx=0)
+		tk.Button(self, text="Cancel", command=self.cancel_download).grid(row=1, column=14, padx=0)
 
 		self.custom_loop()
 		pass
@@ -281,14 +310,14 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 		subprocess.Popen(r'explorer /select,"{}"'.format(p))
 	def about(self):
 		message = """
-		NSFW Game Manager by Dogeek
+		NSFW Game Manager GUI by Dogeek
 		For additional information, check out
-		https://github.com/cyian-1756/nsfw_game_updater
+		https://goo.gl/6LEQk9
 		License : GPL-3.0
 		"""
 		messagebox.showinfo("About", message)
 		pass
-		a
+
 	def edit_current_game(self):
 		if self.add_game_gui is None:
 			data = self.get_json_from_tree()
@@ -335,23 +364,15 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 					f.write(chunk)
 	def add_games_to_tree(self, games=None):
 		if games is None:
-			for i, info in enumerate(self.json_data):
-				if i != 0:
-					formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
-					info["visual_style"], info["animation"])
-					if "paid" in info["public_build"]:
-						self.treeview.insert('', 'end', values = formatted, tags=["paid"])
-					else:
-						self.treeview.insert('', 'end', values = formatted)
-		else:
-			for i, info in enumerate(games):
+			games=self.json_data
+		for i, info in enumerate(games):
+			if info["developer"] != "developer":
 				formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
 				info["visual_style"], info["animation"])
 				if "paid" in info["public_build"]:
 					self.treeview.insert('', 'end', values = formatted, tags=["paid"])
 				else:
 					self.treeview.insert('', 'end', values = formatted)
-		pass
 
 	def update_game_in_tree(self, game_json):
 		for item in self.treeview.get_children():
@@ -480,6 +501,7 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 							'DNT': '1'
 						}
 						response = requests.post(url, headers=headers)
+						print(response)
 						url = response.json()["url"]
 					r = requests.get(url, stream=True)
 					if r.status_code == 200:
@@ -503,18 +525,24 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 				self.thread.start()
 		#self.downloaded_games[game_json["game"]] = version
 		pass
+	def pause_resume_download(self):
+		try:
+			if self.thread.paused:
+				self.thread.resume()
+			else:
+				self.thread.pause()
+		except AttributeError:
+			messagebox.showerror("Error", message="You must be downloading a game.")
+		pass
+
+	def cancel_download(self):
+		try:
+			self.thread.stop()
+		except AttributeError:
+			messagebox.showerror("Error", message="You must be downloading a game.")
+		pass
 	pass
 
 
 if __name__ == "__main__":
-	root = tk.Tk()
-	root.title("NSFW Game Manager")
-	#root.geometry(GEOMETRY)
-	tk.Grid.rowconfigure(root, 0, weight=1)
-	tk.Grid.columnconfigure(root, 0, weight=1)
-	gui = GUI(root)
-	for i in range(50):
-		tk.Grid.rowconfigure(gui, i, weight=1)
-		tk.Grid.columnconfigure(gui, i, weight=1)
-	gui.grid(row=0,column=0, sticky="nsew")
-	gui.mainloop()
+	gui = GUI.main()

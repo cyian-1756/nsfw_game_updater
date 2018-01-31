@@ -6,6 +6,8 @@ The latest GUI release is at https://github.com/cyian-1756/nsfw_game_updater/rel
 
 To be able to edit the database, you'll need to fill out this form : https://goo.gl/forms/6o7RpfWlEM6DyGRs2 You can also open a pull request on github if you make database changes, we'll review it, and merge it if no errors have been found.
 
+Join the gitter chat room, to ask questions about the developpement, suggest new features, hang out... : https://gitter.im/nsfw-game-manager/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link
+
 ## CLI (Command Line Interface) :
 
 ### Adding a game

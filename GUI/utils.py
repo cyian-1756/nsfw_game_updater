@@ -5,6 +5,7 @@ import re
 from distutils.version import StrictVersion
 from bs4 import BeautifulSoup
 import platform
+import tkinter as tk
 
 class LoggerWriter:
 	def __init__(self, level):
@@ -113,3 +114,10 @@ def add_new_game(json_to_add, is_new):
 			handler.add_game(json_to_add)
 	finally:
 		handler.connection.close()
+
+def get_bitmap_from_string(bitmapstring, background_color="white"):
+	bitmap = bitmapstring.split("-")
+	if len(bitmap)==1:
+		return tk.BitmapImage(data=bitmap[0], background=background_color)
+	elif len(bitmap) == 2:
+		return tk.BitmapImage(data=bitmap[0], maskdata=bitmap[1], background=background_color)

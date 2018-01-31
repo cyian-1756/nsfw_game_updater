@@ -35,7 +35,22 @@ logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(
 sys.stdout = LoggerWriter(logging.debug)
 sys.stderr = LoggerWriter(logging.warning)
 
-class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget to not clutter the text widget, add scroll bar, try to auto reload if the lua file is deleted & add a about/options menu
+class GUI(tk.Frame):
+	@classmethod
+	def main(cls):
+		root = tk.Tk()
+		root.title("NSFW Game Manager")
+		root.iconbitmap(default="favicon.ico")
+		tk.Grid.rowconfigure(root, 0, weight=1)
+		tk.Grid.columnconfigure(root, 0, weight=1)
+		gui = cls(root)
+		for i in range(50):
+			tk.Grid.rowconfigure(gui, i, weight=1)
+			tk.Grid.columnconfigure(gui, i, weight=1)
+		gui.grid(row=0,column=0, sticky="nsew")
+		gui.mainloop()
+		return gui
+
 	def __init__(self, master=None, from_github=False):
 		logging.debug("Started NSFW Game Manager")
 		logging.debug("---------------------")
@@ -530,14 +545,4 @@ class GUI(tk.Frame): #TODO: lua mem usage filter to display in a separate widget
 
 
 if __name__ == "__main__":
-	root = tk.Tk()
-	root.title("NSFW Game Manager")
-	#root.geometry(GEOMETRY)
-	tk.Grid.rowconfigure(root, 0, weight=1)
-	tk.Grid.columnconfigure(root, 0, weight=1)
-	gui = GUI(root)
-	for i in range(50):
-		tk.Grid.rowconfigure(gui, i, weight=1)
-		tk.Grid.columnconfigure(gui, i, weight=1)
-	gui.grid(row=0,column=0, sticky="nsew")
-	gui.mainloop()
+	gui = GUI.main()

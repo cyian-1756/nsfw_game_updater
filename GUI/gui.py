@@ -55,6 +55,7 @@ class GUI(tk.Frame):
 		logging.debug("Started NSFW Game Manager")
 		logging.debug("---------------------")
 		tk.Frame.__init__(self,master)
+		self.init_constants()
 		self.master = master
 		try:
 			_jsonfile = open('games.json', 'r')
@@ -77,7 +78,6 @@ class GUI(tk.Frame):
 						logging.debug("Cannot connect to github... Now exiting...")
 						self.on_closing()
 
-		self.downloaded_games = {} if DOWNLOADED_GAMES is None else DOWNLOADED_GAMES
 		self.platformToDownload = tk.StringVar()
 		self.thread = None
 		self.options_gui = None
@@ -89,6 +89,30 @@ class GUI(tk.Frame):
 		self.init_binds()
 		pass
 #INIT METHODS
+
+	def init_constants(self):
+		config = configparser.ConfigParser()
+		config.read("config.cfg")
+		try:
+			self.download_path = config["OPTIONS"]["DOWNLOAD_PATH"]
+		except KeyError:
+			self.download_path = "./downloads/"
+		try:
+			self.installation_path = config["OPTIONS"]["INSTALLATION_PATH"]
+		except KeyError:
+			self.installation_path = "./install/"
+		try:
+			self.downloaded_games = config["DOWNLOADED_GAMES"]
+		except KeyError:
+			self.downloaded_games = {}
+		try:
+			self.use_pending_db = config["OPTIONS"]["USE_PENDING_DB"].lower() in ("yes", "true", "t", "1", "y")
+		except KeyError:
+			self.use_pending_db = False
+		try:
+			self.chunksize = int(config["OPTIONS"]["CHUNKSIZE"])
+		except KeyError:
+			self.chunksize = 1024
 	def init_binds(self):
 		self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
 		self.master.bind('<Control-c>', self.onCtrlC)
@@ -192,10 +216,10 @@ class GUI(tk.Frame):
 	def on_closing(self):
 		config = configparser.ConfigParser()
 		config["OPTIONS"] = {}
-		config["OPTIONS"]["DOWNLOAD_PATH"] = DOWNLOAD_PATH
-		config["OPTIONS"]["INSTALLATION_PATH"] = INSTALLATION_PATH
-		config["OPTIONS"]["CHUNKSIZE"] = str(CHUNKSIZE)
-		config["OPTIONS"]["USE_PENDING_DB"] = str(USE_PENDING_DB)
+		config["OPTIONS"]["DOWNLOAD_PATH"] = self.download_path
+		config["OPTIONS"]["INSTALLATION_PATH"] = self.installation_path
+		config["OPTIONS"]["CHUNKSIZE"] = str(self.chunksize)
+		config["OPTIONS"]["USE_PENDING_DB"] = str(self.use_pending_db)
 		config["DOWNLOADED_GAMES"] = self.downloaded_games
 
 		with open('config.cfg', 'w') as configfile:
@@ -244,8 +268,8 @@ class GUI(tk.Frame):
 		self.columns = columns
 		for column in columns:
 			self.treeview.column(column, anchor = tk.CENTER)
-		if USE_PENDING_DB:
-			with SQLHandler as handler:
+		if self.use_pending_db:
+			with SQLHandler() as handler:
 				self.add_games_to_tree(handler.retrieve_json())
 
 	def custom_loop(self):
@@ -264,7 +288,7 @@ class GUI(tk.Frame):
 			if game is None:
 				game = self.get_json_from_tree(item_to_get=self.treeview.item(item))
 			if game["game"] in self.downloaded_games.keys():
-				if checkversion(game["latest_version"], DOWNLOADED_GAMES[game["game"]]):
+				if checkversion(game["latest_version"], self.downloaded_games[game["game"]]):
 					nb += 1
 					self.treeview.item(item, tags=('has_update'))
 		if nb == 0:
@@ -306,7 +330,7 @@ class GUI(tk.Frame):
 				webbrowser.open(link.get('href'), new=2)
 				return
 	def open_explorer(self):
-		p = DOWNLOAD_PATH if ":\\" in DOWNLOAD_PATH else os.getcwd()+DOWNLOAD_PATH
+		p = self.download_path if ":\\" in self.download_path else os.getcwd()+self.download_path
 		subprocess.Popen(r'explorer /select,"{}"'.format(p))
 	def about(self):
 		message = """
@@ -360,7 +384,7 @@ class GUI(tk.Frame):
 		else:
 			r = requests.get(url, stream=True)
 			with open(os.getcwd()+SEP+"tools"+SEP+url.split("/")[-1], 'wb') as f:
-				for chunk in r.iter_content(chunk_size=CHUNKSIZE):
+				for chunk in r.iter_content(chunk_size=self.chunksize):
 					f.write(chunk)
 	def add_games_to_tree(self, games=None):
 		if games is None:
@@ -412,7 +436,7 @@ class GUI(tk.Frame):
 			#if pwd is not None:
 			#	msg += "\nPassword: {}".format(pwd)
 			if messagebox.askyesno(title="Install game ?", message="Do you wish to install the game?", default='no'):
-				ipath = INSTALLATION_PATH
+				ipath = self.installation_path
 				if not ipath.endswith("/") and not ipath.endswith("\\"):
 					if platform.system().lower()=="windows":
 						ipath += "\\"
@@ -442,10 +466,10 @@ class GUI(tk.Frame):
 		if current_os != '':
 			url = game_json["download_link_{}".format(current_os)]
 			version = game_json["latest_version"]
-		if DOWNLOAD_PATH=="/" or DOWNLOAD_PATH == "":
+		if self.download_path=="/" or self.download_path == "":
 			download = os.getcwd()+'\\'
 		else:
-			download = DOWNLOAD_PATH
+			download = self.download_path
 		if url == "-":
 			messagebox.showerror("Error", "This game isn't supported by your platform yet.")
 		elif url.lower() == "non-static link":
@@ -520,7 +544,7 @@ class GUI(tk.Frame):
 						return
 				if name == "":
 					name = game_json["game"]+".zip"
-				self.thread = DownloadThread(r, CHUNKSIZE, size, download, name, self.on_complete_callback)
+				self.thread = DownloadThread(r, self.chunksize, size, download, name, self.on_complete_callback)
 				self.thread.daemon = True
 				self.thread.start()
 		#self.downloaded_games[game_json["game"]] = version

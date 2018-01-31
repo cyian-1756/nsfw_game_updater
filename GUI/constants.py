@@ -10,33 +10,6 @@ else:
 
 lock = Lock()
 
-config = configparser.ConfigParser()
-config.read("config.cfg")
-try:
-	GEOMETRY = config["OPTIONS"]["GEOMETRY"]
-except KeyError:
-	GEOMETRY = "800x600"
-try:
-	DOWNLOAD_PATH = config["OPTIONS"]["DOWNLOAD_PATH"]
-except KeyError:
-	DOWNLOAD_PATH = "./downloads/"
-try:
-	INSTALLATION_PATH = config["OPTIONS"]["INSTALLATION_PATH"]
-except KeyError:
-	INSTALLATION_PATH = "./install/"
-try:
-	DOWNLOADED_GAMES = config["DOWNLOADED_GAMES"]
-except KeyError:
-	DOWNLOADED_GAMES = {}
-try:
-	USE_PENDING_DB = config["OPTIONS"]["USE_CONFIG_DB"].lower() in ("yes", "true", "t", "1", "y")
-except KeyError:
-	USE_PENDING_DB = False
-try:
-	CHUNKSIZE = int(config["OPTIONS"]["CHUNKSIZE"])
-except KeyError:
-	CHUNKSIZE = 1024
-
 #####---------GRAPHICS----------#######
 
 #Folder icon image, as an xbm image, the mask is separated by the '-' character.

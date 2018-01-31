@@ -12,13 +12,13 @@ class OptionGUI(tk.Toplevel):
 		self.master = master
 		self.title = "Options"
 		self.downloadpath_var = tk.StringVar()
-		self.downloadpath_var.set(DOWNLOAD_PATH)
+		self.downloadpath_var.set(master.download_path)
 		self.installationpath_var = tk.StringVar()
-		self.installationpath_var.set(INSTALLATION_PATH)
+		self.installationpath_var.set(master.installation_path)
 		self.chunksize_var = tk.StringVar()
-		self.chunksize_var.set(str(CHUNKSIZE))
+		self.chunksize_var.set(str(master.chunksize))
 		self.use_pending_var = tk.IntVar()
-		self.use_pending_var.set(int(USE_PENDING_DB))
+		self.use_pending_var.set(int(master.use_pending_db))
 		self.config()
 		pass
 
@@ -64,15 +64,10 @@ class OptionGUI(tk.Toplevel):
 		pass
 
 	def onOkButton(self):
-		global DOWNLOAD_PATH
-		global INSTALLATION_PATH
-		global CHUNKSIZE
-		global USE_PENDING_DB
-
-		INSTALLATION_PATH = self.installationpath_var.get()
-		DOWNLOAD_PATH = self.downloadpath_var.get()
-		CHUNKSIZE = int(self.chunksize_var.get())*1000000
-		USE_PENDING_DB = self.use_pending_var.get()==1
+		self.master.installation_path = self.installationpath_var.get()
+		self.master.download_path = self.downloadpath_var.get()
+		self.master.chunksize = int(self.chunksize_var.get())*1000000
+		self.master.use_pending_db = self.use_pending_var.get()==1
 
 		self.master.update_treeview()
 		self.onCancelButton()

@@ -240,7 +240,6 @@ class GUI(tk.Frame):
 				for key in values.keys():
 					if subsearch.startswith(key.lower()+":"):
 						subsearch = subsearch.split(":")[1]
-						print(values[key].lower())
 						if subsearch not in values[key].lower() and subsearch:
 							self.hide_item(item)
 						else:

@@ -30,6 +30,7 @@ from get_from_reddit import GetFromRedditGUI
 from mega_downloader import MegaDownloader
 from sql import SQLHandler
 from utils import *
+import tooltip
 
 logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 sys.stdout = LoggerWriter(logging.debug)

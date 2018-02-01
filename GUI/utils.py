@@ -27,7 +27,7 @@ class LoggerWriter:
 		# the system wants to. Not sure if simply 'printing'
 		# sys.stderr is the correct way to do it, but it seemed
 		# to work properly for me.
-		self.level(sys.stderr)
+		self.level(self.stderr)
 
 def checkversion(version1, version2):
 	"""

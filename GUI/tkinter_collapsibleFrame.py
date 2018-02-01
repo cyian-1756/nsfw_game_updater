@@ -117,7 +117,7 @@ if __name__ == "__main__":
 	cf1.pack()
 
 	for i in range(3):
-		Button(cf1.interior, text="button %s"%i).pack(side=LEFT)
+		Button(cf1.interior, text="button %s"%i).grid(row=i, column=0)
 
 	cf1.update_width()
 	root.mainloop()

@@ -79,7 +79,11 @@ class GUI(tk.Frame):
 						self.on_closing()
 
 		self.platformToDownload = tk.StringVar()
-		self.thread = None
+		self.search_string = tk.StringVar()
+		self.search_string.trace("w", self.on_search_change_callback)
+		self.tree_items_ids = []
+
+		self.threads = []
 		self.options_gui = None
 		self.add_game_gui = None
 		self.reddit_gui = None
@@ -131,6 +135,7 @@ class GUI(tk.Frame):
 		self.contextual_menu.add_command(label='Mark as Downloaded', command=self.mark_as_downloaded)
 		self.contextual_menu.add_separator()
 		self.contextual_menu.add_command(label="Edit Entry", command=self.edit_current_game)
+		self.contextual_menu.add_command(label="Hide Item", command=self.hide_item)
 
 	def init_layout(self):
 		self.menubar = tk.Menu(self)
@@ -147,11 +152,14 @@ class GUI(tk.Frame):
 		editmenu.add_command(label="Add New Game", command=self.add_new_game)
 		editmenu.add_command(label="Edit Selected Entry", command=self.edit_current_game)
 		editmenu.add_command(label="Open Reddit Scraper", command=self.open_reddit_scraper)
-		editmenu.add_command(label="Save main database locally", command=self.save_database)
-		editmenu.add_command(label="Remove local main database", command=self.remove_local_db)
-		editmenu.add_separator()
-		editmenu.add_command(label="Save pending database locally", command=self.save_pending_database)
-		editmenu.add_command(label="Remove local pending database", command=self.remove_local_pending_db)
+		dbmenu = tk.Menu(self)
+		dbmenu.add_command(label="Save main database locally", command=self.save_database)
+		dbmenu.add_command(label="Remove local main database", command=self.remove_local_db)
+		dbmenu.add_separator()
+		dbmenu.add_command(label="Save pending database locally", command=self.save_pending_database)
+		dbmenu.add_command(label="Remove local pending database", command=self.remove_local_pending_db)
+		dbmenu.add_separator()
+		dbmenu.add_command(label="Show all hidden items", command=self.show_hidden_items)
 		toolsmenu = tk.Menu(self)
 		toolsdict = {
 		"unrpyc":"open:https://github.com/CensoredUsername/unrpyc/releases",
@@ -168,23 +176,26 @@ class GUI(tk.Frame):
 
 		self.menubar.add_cascade(label="File", menu=filemenu)
 		self.menubar.add_cascade(label="Edit", menu=editmenu)
+		self.menubar.add_cascade(label="Database", menu=dbmenu)
 		self.menubar.add_command(label="Options", command=self.open_options)
 		self.menubar.add_cascade(label="Tools/Runtimes", menu=toolsmenu)
 		self.menubar.add_cascade(label="?", menu=helpmenu)
 		self.master.config(menu=self.menubar)
 
 		self.init_treeview()
-
+		self.search_entry = tk.Entry(self, textvariable=self.search_string)
+		self.search_entry.grid(row=0, column=1, columnspan=14, sticky="we")
+		tk.Label(self, text="Search :").grid(row=0, column=0)
 		self.download_button = tk.Button(self, text="Download/Update", command=self.download_selected_game)
-		self.download_button.grid(row=1, column=0, padx=0)
-		tk.Button(self, text="Pause/Resume", command=self.pause_resume_download).grid(row=1, column=1, padx=0)
+		self.download_button.grid(row=2, column=0, padx=0)
+		tk.Button(self, text="Pause/Resume", command=self.pause_resume_download).grid(row=2, column=1, padx=0)
 		self.platformCombo = ttk.Combobox(self, textvariable = self.platformToDownload, state='readonly', values=("Automatic", "Windows", "Linux", "MacOS", "Android"))
-		self.platformCombo.grid(row=1, column=2)
+		self.platformCombo.grid(row=2, column=2)
 		self.platformCombo.current(0)
 		self.progress = tk.DoubleVar()
 		self.progressbar = ttk.Progressbar(self, mode="determinate", maximum=100, variable=self.progress)
-		self.progressbar.grid(row=1, column=3, columnspan=11, sticky="ew", padx=0)
-		tk.Button(self, text="Cancel", command=self.cancel_download).grid(row=1, column=14, padx=0)
+		self.progressbar.grid(row=2, column=3, columnspan=11, sticky="ew", padx=0)
+		tk.Button(self, text="Cancel", command=self.cancel_download).grid(row=2, column=14, padx=0)
 
 		self.custom_loop()
 		pass
@@ -203,16 +214,36 @@ class GUI(tk.Frame):
 			tv.heading(col, command=lambda _col=col: \
 						treeview_sort_column(tv, col, not reverse))
 		for column in columns:
-			self.treeview.column(column, anchor = tk.CENTER)
+			self.treeview.column(column, anchor = tk.CENTER, stretch=True)
 			self.treeview.heading(column, text=column.capitalize(), command=lambda _col=column: \
 									treeview_sort_column(self.treeview, _col, False))
-		self.treeview.grid(row=0, column=0, columnspan=15, sticky="nsew")
-		self.treeview.tag_configure('has_update', background="red")
+		self.treeview.grid(row=1, column=0, columnspan=15, sticky="nsew")
+		self.treeview.tag_configure('has_update', background="IndianRed2")
 		self.treeview.tag_configure('paid', background="AntiqueWhite1")
+		self.treeview.tag_configure('hide')
+		self.treeview.tag_configure('show')
 		self.add_games_to_tree()
 		self.update_treeview()
 
 #EVENT METHODS
+	def on_search_change_callback(self, *args):
+		search = self.search_string.get().lower().split(",")
+		search = [s.lower() for s in search]
+		matches = []
+		for item in self.tree_items_ids:
+			values = self.get_json_from_tree(item_to_get=self.treeview.item(item))
+			for subsearch in search:
+				for key in values.keys():
+					if subsearch.startswith(key.lower()+":"):
+						subsearch = subsearch.split(":")[1]
+						print(values[key].lower())
+						if subsearch not in values[key].lower() and subsearch:
+							self.hide_item(item)
+						else:
+							self.show_item(item)
+
+		pass
+
 	def on_closing(self):
 		config = configparser.ConfigParser()
 		config["OPTIONS"] = {}
@@ -273,11 +304,21 @@ class GUI(tk.Frame):
 				self.add_games_to_tree(handler.retrieve_json())
 
 	def custom_loop(self):
-		if self.thread is not None:
-			if self.thread.is_alive:
-				self.progress.set(self.thread.progress)
-			else:
+		for idx, thread in enumerate(self.threads):
+			if not thread.is_alive:
+				self.threads.pop(idx)
 				self.progress.set(0)
+		try:
+			prg = sum([t.progress for t in self.threads])//len(self.threads)
+		except ZeroDivisionError:
+			prg = 0
+		self.progress.set(prg)
+
+		for item in self.treeview.tag_has("hide"):
+			self.treeview.detach(item)
+		for item in [i for i in self.tree_items_ids if "show" in self.treeview.item(i)["tags"]]:#self.treeview.tag_has("show"):
+			self.treeview.reattach(item, self.treeview.parent(item), self.treeview.index(item))
+
 		self.update_idletasks()
 		self.update()
 		self.after(50, self.custom_loop)
@@ -377,7 +418,30 @@ class GUI(tk.Frame):
 		if game_json is not None:
 			webbrowser.open(game_json["graphtreon"], new=2)
 		pass
-#Utility methods
+
+	def hide_item(self, item=None):
+		if item is None:
+			item = self.treeview.focus()
+		itemtags = list(self.treeview.item(item)["tags"])
+
+		if "show" in itemtags:
+			itemtags.remove("show")
+			itemtags.append("hide")
+		self.treeview.item(item, tags=itemtags)
+
+	def show_item(self, item):
+		itemtags = list(self.treeview.item(item)["tags"])
+		if "hide" in itemtags:
+			itemtags.remove("hide")
+			itemtags.append("show")
+		self.treeview.item(item, tags=itemtags)
+
+	def show_hidden_items(self): #FIXME doesn't do anything???
+		t = [self.treeview.item(item)["tags"] for item in self.tree_items_ids]
+		for item in self.tree_items_ids:
+			if "hide" in list(self.treeview.item(item)["tags"]):
+				self.show_item(item)
+	#Utility methods
 	def download_tool(self, url):
 		if url.startswith("open:"):
 			webbrowser.open(url.split("open:")[1], new=2)
@@ -393,10 +457,10 @@ class GUI(tk.Frame):
 			if info["developer"] != "developer":
 				formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
 				info["visual_style"], info["animation"])
+				tags = ['show']
 				if "paid" in info["public_build"]:
-					self.treeview.insert('', 'end', values = formatted, tags=["paid"])
-				else:
-					self.treeview.insert('', 'end', values = formatted)
+					tags.append('paid')
+				self.tree_items_ids.append(self.treeview.insert('', 'end', values = formatted, tags=tags))
 
 	def update_game_in_tree(self, game_json):
 		for item in self.treeview.get_children():
@@ -503,9 +567,9 @@ class GUI(tk.Frame):
 					webbrowser.open(url.split("open:")[1], new=2)
 					return
 				elif "mega.nz" in url:
-					self.thread = MegaDownloader(url, download, self.on_complete_callback)
-					self.thread.daemon = True
-					self.thread.start()
+					self.threads.append(MegaDownloader(url, download, self.on_complete_callback))
+					self.threads[-1].daemon = True
+					self.threads[-1].start()
 					return
 				else:
 					if "mediafire" in url:
@@ -544,24 +608,26 @@ class GUI(tk.Frame):
 						return
 				if name == "":
 					name = game_json["game"]+".zip"
-				self.thread = DownloadThread(r, self.chunksize, size, download, name, self.on_complete_callback)
-				self.thread.daemon = True
-				self.thread.start()
+				self.threads.append(DownloadThread(r, self.chunksize, size, download, name, self.on_complete_callback))
+				self.threads[-1].daemon = True
+				self.threads[-1].start()
 		#self.downloaded_games[game_json["game"]] = version
 		pass
 	def pause_resume_download(self):
 		try:
-			if self.thread.paused:
-				self.thread.resume()
-			else:
-				self.thread.pause()
+			for thread in self.threads:
+				if thread.paused:
+					thread.resume()
+				else:
+					thread.pause()
 		except AttributeError:
 			messagebox.showerror("Error", message="You must be downloading a game.")
 		pass
 
 	def cancel_download(self):
 		try:
-			self.thread.stop()
+			for thread in self.threads:
+				thread.stop()
 		except AttributeError:
 			messagebox.showerror("Error", message="You must be downloading a game.")
 		pass

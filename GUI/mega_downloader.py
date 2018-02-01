@@ -297,4 +297,3 @@ class MegaDownloader(Thread):
 		self.stop_event.set()
 		self.progress = 0
 		#os.remove(self.path+self.name)
-		self.daemon = False

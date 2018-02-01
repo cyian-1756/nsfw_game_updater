@@ -64,6 +64,7 @@ The gui has been made using the Tk/Tcl wrapper tkinter.
 - Visit Patreon/Graphtreon pages from the application
 - Keyboard shortcuts, contextual menu, all for a better UX
 - Automatic unzipping/install of the games to the specified installation directory
+- A search engine to filter out unwanted games.
 
 ### Planned :
 

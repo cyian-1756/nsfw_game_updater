@@ -121,3 +121,14 @@ def get_bitmap_from_string(bitmapstring, background_color="white"):
 		return tk.BitmapImage(data=bitmap[0], background=background_color)
 	elif len(bitmap) == 2:
 		return tk.BitmapImage(data=bitmap[0], maskdata=bitmap[1], background=background_color)
+
+def rating_as_stars(rating, total = 5):
+	if rating is None:
+		return 'No ratings yet'
+	rating = int(round(rating, 0))
+	s = ""
+	for i in range(rating):
+		s+= "★"
+	for i in range(rating-total):
+		s+="☆"
+	return s

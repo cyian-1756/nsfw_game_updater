@@ -65,10 +65,10 @@ The gui has been made using the Tk/Tcl wrapper tkinter.
 - Keyboard shortcuts, contextual menu, all for a better UX
 - Automatic unzipping/install of the games to the specified installation directory
 - A search engine to filter out unwanted games.
+- Game rating (each user may rate the game, shown rating will be the average rating)
 
 ### Planned :
 
 - Improve reddit integration to automatically enter the info into the database
 - Scraping games' websites to look for updates.
-- Game rating (each user may rate the game, shown rating will be the average rating)
 - Patreon integration to pledge from the app itself

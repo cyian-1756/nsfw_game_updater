@@ -83,7 +83,7 @@ class GUI(tk.Frame):
 		self.search_string.trace("w", self.on_search_change_callback)
 		self.tree_items_ids = []
 
-		self.thread = None
+		self.threads = []
 		self.options_gui = None
 		self.add_game_gui = None
 		self.reddit_gui = None
@@ -304,11 +304,12 @@ class GUI(tk.Frame):
 				self.add_games_to_tree(handler.retrieve_json())
 
 	def custom_loop(self):
-		if self.thread is not None:
-			if self.thread.is_alive:
-				self.progress.set(self.thread.progress)
-			else:
+		for idx, thread in enumerate(self.threads):
+			if not thread.is_alive:
+				self.threads.pop(idx)
 				self.progress.set(0)
+		prg = sum([t.progress for t in self.threads])//len(self.threads)
+		self.progress.set(prg)
 
 		for item in self.treeview.tag_has("hide"):
 			self.treeview.detach(item)
@@ -563,9 +564,9 @@ class GUI(tk.Frame):
 					webbrowser.open(url.split("open:")[1], new=2)
 					return
 				elif "mega.nz" in url:
-					self.thread = MegaDownloader(url, download, self.on_complete_callback)
-					self.thread.daemon = True
-					self.thread.start()
+					self.threads.append(MegaDownloader(url, download, self.on_complete_callback))
+					self.threads[-1].daemon = True
+					self.threads[-1].start()
 					return
 				else:
 					if "mediafire" in url:
@@ -604,24 +605,26 @@ class GUI(tk.Frame):
 						return
 				if name == "":
 					name = game_json["game"]+".zip"
-				self.thread = DownloadThread(r, self.chunksize, size, download, name, self.on_complete_callback)
-				self.thread.daemon = True
-				self.thread.start()
+				self.threads.append(DownloadThread(r, self.chunksize, size, download, name, self.on_complete_callback))
+				self.threads[-1].daemon = True
+				self.threads[-1].start()
 		#self.downloaded_games[game_json["game"]] = version
 		pass
 	def pause_resume_download(self):
 		try:
-			if self.thread.paused:
-				self.thread.resume()
-			else:
-				self.thread.pause()
+			for thread in self.threads:
+				if thread.paused:
+					thread.resume()
+				else:
+					thread.pause()
 		except AttributeError:
 			messagebox.showerror("Error", message="You must be downloading a game.")
 		pass
 
 	def cancel_download(self):
 		try:
-			self.thread.stop()
+			for thread in self.threads:
+				thread.stop()
 		except AttributeError:
 			messagebox.showerror("Error", message="You must be downloading a game.")
 		pass

@@ -18,6 +18,7 @@ The GUI has been made using the Tk/Tcl wrapper for python, tkinter.
 - Syncing every user's databases
 - Automatic unzipping/install of the games to the specified installation directory
 - Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database
+- A search engine to filter out games you don't want.
 
 ### Planned :
 

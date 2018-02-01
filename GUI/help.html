@@ -83,6 +83,33 @@
 					CTRL+D : copies the download link for your platform, according to the platform combobox, at the bottom of the screen.<br/>
 					CTRL+W : Mark a game as downloaded, to check if the game has updates<br/>
 				</p>
+				<h2>The search feature</h2>
+				<p>
+					To use the search feature, you must first input the name of the column you wish to search in, then a semicolon (":") and the search term afterwards.<br/>
+					For instance, if I want to search for games made by darkcookie, I'll enter :<br/>
+					&emsp;&emsp; developer:darkcookie<br/>
+					<br/>
+					If you want to filter multiple columns at once, you can. Separate every search term with a comma (",")<br/>
+					Example : <br/>
+					&emsp;&emsp; visual_style:3D,animation:yes<br/>
+					<br/>
+					Below is a full list of supported keys for the search engine :
+					<ul>
+						<li>animation</li>
+						<li>developer</li>
+						<li>download_link_android</li>
+						<li>download_link_linux</li>
+						<li>download_link_mac</li>
+						<li>download_link_windows</li>
+						<li>engine</li>
+						<li>game</li>
+						<li>genre</li>
+						<li>graphtreon</li>
+						<li>public_build</li>
+						<li>setting</li>
+						<li>visual_style</li>
+					</ul>
+				</p>
 			</div>
 			<div id="windows" style="display:none;">
 				<h1>Top-level windows description</h1>
@@ -107,25 +134,26 @@
 
 				<h2>Implemented :</h2>
 				<ul>
-				<li>Adding new games to the database</li>
-				<li>Downloading and Updating games from the following sources : mega.nz, patreon, dropbox, google drive, itch.io and via apache.</li>
-				<li>Editing games in the database</li>
-				<li>Copying the links to the clipboard</li>
-				<li>Copying the whole line's data to the clipboard</li>
-				<li>check for game updates</li>
-				<li>Sorting games by genre, developer, etc.</li>
-				<li>A super awesome help page (this!)</li>
-				<li>Options to set the window size, the download path etc</li>
-				<li>Syncing every user's databases</li>
-				<li>Automatic unzipping/install of the games to the specified installation directory</li>
-				<li>Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database</li>
+					<li>Adding new games to the database</li>
+					<li>Downloading and Updating games from the following sources : mega.nz, patreon, dropbox, google drive, itch.io and via apache.</li>
+					<li>Editing games in the database</li>
+					<li>Copying the links to the clipboard</li>
+					<li>Copying the whole line's data to the clipboard</li>
+					<li>check for game updates</li>
+					<li>Sorting games by genre, developer, etc.</li>
+					<li>A super awesome help page (this!)</li>
+					<li>Options to set the window size, the download path etc</li>
+					<li>Syncing every user's databases</li>
+					<li>Automatic unzipping/install of the games to the specified installation directory</li>
+					<li>Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database</li>
+					<li>A search engine to sort through the games faster !</li>
 				</ul>
 				<h2>Planned :</h2>
 				<ul>
-				<li>Scraping games' websites to look for updates.</li>
-				<li>Auto-Updating the database</li>
-				<li>Game rating (each user may rate the game, shown rating will be the average rating)</li>
-				<li>Patreon integration to pledge from the app itself</li>
+					<li>Scraping games' websites to look for updates.</li>
+					<li>Auto-Updating the database</li>
+					<li>Game rating (each user may rate the game, shown rating will be the average rating)</li>
+					<li>Patreon integration to pledge from the app itself</li>
 				</ul>
 			</div>
 			<div id="about" style="display:none;">

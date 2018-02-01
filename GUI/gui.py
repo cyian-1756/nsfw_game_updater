@@ -40,7 +40,11 @@ class GUI(tk.Frame):
 	def main(cls):
 		root = tk.Tk()
 		root.title("NSFW Game Manager")
-		root.iconbitmap(default="favicon.ico")
+		try:
+			root.iconbitmap(default="favicon.ico")
+		except tk.TclError:
+			root.iconphoto(tk.PhotoImage("favicon.gif"))
+			#root.iconbitmap('@favicon.xbm')
 		tk.Grid.rowconfigure(root, 0, weight=1)
 		tk.Grid.columnconfigure(root, 0, weight=1)
 		gui = cls(root)

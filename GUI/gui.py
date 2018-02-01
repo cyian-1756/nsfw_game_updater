@@ -308,7 +308,10 @@ class GUI(tk.Frame):
 			if not thread.is_alive:
 				self.threads.pop(idx)
 				self.progress.set(0)
-		prg = sum([t.progress for t in self.threads])//len(self.threads)
+		try:
+			prg = sum([t.progress for t in self.threads])//len(self.threads)
+		except ZeroDivisionError:
+			prg = 0
 		self.progress.set(prg)
 
 		for item in self.treeview.tag_has("hide"):

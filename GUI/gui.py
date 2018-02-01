@@ -30,6 +30,7 @@ from get_from_reddit import GetFromRedditGUI
 from mega_downloader import MegaDownloader
 from sql import SQLHandler
 from utils import *
+import tooltip
 
 logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 sys.stdout = LoggerWriter(logging.debug)
@@ -121,6 +122,10 @@ class GUI(tk.Frame):
 			self.chunksize = int(config["OPTIONS"]["CHUNKSIZE"])
 		except KeyError:
 			self.chunksize = 1024
+		try:
+			self.rated_games = config["RATED_GAMES"]
+		except KeyError:
+			self.rated_games = {}
 	def init_binds(self):
 		self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
 		self.master.bind('<Control-c>', self.onCtrlC)
@@ -140,6 +145,10 @@ class GUI(tk.Frame):
 		self.contextual_menu.add_separator()
 		self.contextual_menu.add_command(label="Edit Entry", command=self.edit_current_game)
 		self.contextual_menu.add_command(label="Hide Item", command=self.hide_item)
+		ratingmenu = tk.Menu(self)
+		for i in range(5):
+			ratingmenu.add_command(label=rating_as_stars(i+1), command=lambda x=i+1:self.rate_game(x))
+		self.contextual_menu.add_cascade(label="Rate Game", menu=ratingmenu)
 
 	def init_layout(self):
 		self.menubar = tk.Menu(self)
@@ -205,7 +214,7 @@ class GUI(tk.Frame):
 		pass
 
 	def init_treeview(self):
-		columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation")
+		columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Rating")
 		self.columns = columns
 		self.treeview = ttk.Treeview(self, columns = columns, show="headings", height=30)
 		def treeview_sort_column(tv, col, reverse):
@@ -240,7 +249,6 @@ class GUI(tk.Frame):
 				for key in values.keys():
 					if subsearch.startswith(key.lower()+":"):
 						subsearch = subsearch.split(":")[1]
-						print(values[key].lower())
 						if subsearch not in values[key].lower() and subsearch:
 							self.hide_item(item)
 						else:
@@ -256,6 +264,7 @@ class GUI(tk.Frame):
 		config["OPTIONS"]["CHUNKSIZE"] = str(self.chunksize)
 		config["OPTIONS"]["USE_PENDING_DB"] = str(self.use_pending_db)
 		config["DOWNLOADED_GAMES"] = self.downloaded_games
+		config["RATED_GAMES"] = self.rated_games
 
 		with open('config.cfg', 'w') as configfile:
 			config.write(configfile)
@@ -299,10 +308,6 @@ class GUI(tk.Frame):
 #Update methods
 
 	def update_treeview(self):
-		columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation")
-		self.columns = columns
-		for column in columns:
-			self.treeview.column(column, anchor = tk.CENTER)
 		if self.use_pending_db:
 			with SQLHandler() as handler:
 				self.add_games_to_tree(handler.retrieve_json())
@@ -365,6 +370,18 @@ class GUI(tk.Frame):
 			self.downloaded_games[game_json["game"]] = game_json["version"]
 		pass
 
+	def rate_game(self, rating):
+		game = self.get_json_from_tree()
+		if game["game"] not in self.rated_games.keys():
+			with SQLHandler() as handler:
+				newrating, nb_votes = handler.update_rating(game["game"], rating)
+				game["rating"] = newrating
+				game["nb_votes"] = nb_votes
+			self.update_game_in_tree(game)
+			self.rated_games[game["game"]] = rating
+		else:
+			messagebox.showinfo("Information", "You already voted for this game")
+		pass
 #Open Toplevel windows methods
 	def go_to_patreon(self):
 		game_json = self.get_json_from_tree()
@@ -460,20 +477,27 @@ class GUI(tk.Frame):
 		for i, info in enumerate(games):
 			if info["developer"] != "developer":
 				formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
-				info["visual_style"], info["animation"])
+				info["visual_style"], info["animation"], rating_as_stars(info["rating"]))
 				tags = ['show']
 				if "paid" in info["public_build"]:
 					tags.append('paid')
 				self.tree_items_ids.append(self.treeview.insert('', 'end', values = formatted, tags=tags))
 
 	def update_game_in_tree(self, game_json):
-		for item in self.treeview.get_children():
+		for iid in self.tree_items_ids:
+			item = self.treeview.item(iid)
 			if item["values"][self.columns.index("Game")].lower() == game_json["game"].lower():
 				tmp = []
 				for col in self.columns:
-					tmp.append(game_json[col.lower()])
+					if "rating" in col.lower():
+						tmp.append(rating_as_stars(game_json[col.lower()]))
+						continue
+					elif "visual style" in col.lower():
+						tmp.append(game_json["visual_style"])
+					else:
+						tmp.append(game_json[col.lower()])
 				tmp = tuple(tmp)
-				self.treeview.item(item, values=tmp)
+				self.treeview.item(iid, values=tmp)
 
 	def get_json_from_tree(self, return_item=False, item_to_get=None):
 		try:

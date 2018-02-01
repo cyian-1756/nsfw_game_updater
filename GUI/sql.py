@@ -54,7 +54,7 @@ class SQLHandler():
 				valstr += "%s,"
 			colstr = colstr.rstrip(",")+")"
 			valstr = valstr.rstrip(",")+")"
-			sql = """INSERT INTO `{}` {} VALUES {}""".format(db_name, colstr, valstr)
+			sql = """INSERT INTO `{}` {} VALUES {};""".format(db_name, colstr, valstr)
 			cursor.execute(sql, list(game.values()))
 			cursor.close()
 		# self.connection is not autocommit by default. So you must commit to save
@@ -65,13 +65,31 @@ class SQLHandler():
 		result = []
 		with self.connection.cursor() as cursor:
 			# Read a single record
-			sql = "SELECT * FROM `{}`".format(table_name)
+			sql = "SELECT * FROM `{}`;".format(table_name)
 			cursor.execute(sql)
 			result = cursor.fetchall()
 		if write_local:
 			with open('pending_games.json', 'w', encoding="utf-8") as f:
 				 f.write(json.dumps(result, indent=4, sort_keys=True))
 		return result
+
+	def update_rating(self, game_name, rating, table_name="main"):
+		with self.connection.cursor() as cursor:
+			sql = "SELECT rating, nb_votes FROM {0} WHERE LOWER(game)=LOWER('{1}');".format(table_name, game_name)
+			cursor.execute(sql)
+			result = cursor.fetchone()
+			oldrating = result["rating"]
+			nb_votes = result["nb_votes"]
+			nb_votes += 1
+			if oldrating is not None:
+				rating = (rating + (nb_votes-1)*oldrating)/nb_votes
+			sql = """UPDATE `{}` SET rating={},nb_votes={} WHERE game='{}';""".format(table_name, rating, nb_votes, game_name)
+			cursor.execute(sql)
+			cursor.close()
+		# self.connection is not autocommit by default. So you must commit to save
+		# your changes.
+		self.connection.commit()
+		return rating, nb_votes
 
 if __name__ == '__main__':
 	handler = SQLHandler()

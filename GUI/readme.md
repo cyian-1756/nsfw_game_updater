@@ -19,12 +19,12 @@ The GUI has been made using the Tk/Tcl wrapper for python, tkinter.
 - Automatic unzipping/install of the games to the specified installation directory
 - Scrape reddit r/lewdgames and r/nsfwgaming for updates, and new releases to add them to the database
 - A search engine to filter out games you don't want.
+- Game rating (each user may rate the game, shown rating will be the average rating)
 
 ### Planned :
 
 - Scraping games' websites to look for updates.
 - Auto-Updating the database
-- Game rating (each user may rate the game, shown rating will be the average rating)
 - Patreon integration to pledge from the app itself
 
 # TO DO List :

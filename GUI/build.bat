@@ -10,6 +10,8 @@ robocopy . dist/ help.html
 robocopy . dist/ tcl86t.dll
 robocopy . dist/ tk86t.dll
 robocopy . dist/ favicon.ico
+robocopy . dist/ favicon.gif
+robocopy . dist/ favicon.xbm
 set /p version="Version Number: "
 python package.py %version%
 pause

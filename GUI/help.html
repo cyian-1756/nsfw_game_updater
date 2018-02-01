@@ -19,6 +19,10 @@
 			}
 		</script>
 		<style>
+			body{
+				font-family: "Trebuchet MS", "Verdana", sans-serif;
+				background-color: #888;
+			}
 			#navigation {
 				width: 200px;
 				list-style: none;
@@ -28,15 +32,15 @@
 				position:fixed;
 			}
 			#navigation li {
-				background: #AAAAAA ;
+				background: #EDEDED ;
 				color: #fff ;
 				border: 1px solid #600 ;
 				margin-bottom: 1px ;
 			}
 			#navigation li span {
 				display: block ;
-				background: #AAAAAA ;
-				color: #fff ;
+				background: #EDEDED ;
+				color: #333 ;
 				font: 1em "Trebuchet MS",Arial,sans-serif ;
 				line-height: 1em ;
 				text-align: center ;
@@ -44,13 +48,36 @@
 				padding: 4px 0 ;
 			}
 			#navigation li span:hover, #navigation li span:focus, #navigation li span:active {
-				background: #999999 ;
+				background: #AAA ;
 				text-decoration: none ;
 				cursor: pointer;
 			}
 			#main{
-				position:absolute;
-				left:250px;
+				display: inline-block;
+				background-color:#EDEDED;
+				border-radius:5px;
+				padding: 0.5em 1em;
+				margin-left: 15em;
+				//position:absolute;
+				//left:250px;
+				width: 80%;
+				height: 95%;
+			}
+			code{
+				padding:0.1em 0.5em;
+				background-color:#DEDEDE;
+				border:1px black;
+				border-radius:2px;
+			}
+			ul.dashed {
+				list-style-type: none;
+			}
+			ul.dashed > li {
+				text-indent: -5px;
+			}
+			ul.dashed > li:before {
+				content: "– ";
+				text-indent: -5px;
 			}
 		</style>
 	</head>
@@ -82,19 +109,26 @@
 					CTRL+C : allows you to copy the game info to your clipboard<br/>
 					CTRL+D : copies the download link for your platform, according to the platform combobox, at the bottom of the screen.<br/>
 					CTRL+W : Mark a game as downloaded, to check if the game has updates<br/>
+					CTRL+Q : Open the selected game's patreon page<br/>
+				</p>
+				<h2>Contextual Menu</h2>
+				<p>
+					You can access the contextual menu by right clicking on a game in the list.<br/><br/>
+					
+					From then, you can access any function availaible through keybindings, plus the possibility to hide games, go to the graphtreon page and edit the entry in the database.
 				</p>
 				<h2>The search feature</h2>
 				<p>
 					To use the search feature, you must first input the name of the column you wish to search in, then a semicolon (":") and the search term afterwards.<br/>
 					For instance, if I want to search for games made by darkcookie, I'll enter :<br/>
-					&emsp;&emsp; developer:darkcookie<br/>
+					&emsp;&emsp; <code>developer:darkcookie</code><br/>
 					<br/>
 					If you want to filter multiple columns at once, you can. Separate every search term with a comma (",")<br/>
 					Example : <br/>
-					&emsp;&emsp; visual_style:3D,animation:yes<br/>
+					&emsp;&emsp; <code>visual_style:3D,animation:yes</code><br/>
 					<br/>
 					Below is a full list of supported keys for the search engine :
-					<ul>
+					<ul class='dashed'>
 						<li>animation</li>
 						<li>developer</li>
 						<li>download_link_android</li>
@@ -110,13 +144,19 @@
 						<li>visual_style</li>
 					</ul>
 				</p>
+				<h2>Game Rating :</h2>
+				<p>
+					You may rate any game. Just right-click on the game you want to rate, and select the grade you want from the "Rate game" submenu.
+					<br/>
+					You may rate each game only once.
+				</p>
 			</div>
 			<div id="windows" style="display:none;">
 				<h1>Top-level windows description</h1>
 				<h2>Options Window</h2>
 				<p>
 					The options window allows you to resize and choose an installation/download path. It also allows you to setup your accounts for downloading the files besides the provided (default) ones<br/>
-					You may setup these acounts in the "Advanced" tab of the options window.
+					You may setup these accounts in the "Advanced" tab of the options window.
 				</p>
 				<h2>Adding a New Game</h2>
 				<p>
@@ -133,7 +173,7 @@
 				<h1>Features :</h1>
 
 				<h2>Implemented :</h2>
-				<ul>
+				<ul class='dashed'>
 					<li>Adding new games to the database</li>
 					<li>Downloading and Updating games from the following sources : mega.nz, patreon, dropbox, google drive, itch.io and via apache.</li>
 					<li>Editing games in the database</li>

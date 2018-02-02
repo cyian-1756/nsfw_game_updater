@@ -75,7 +75,7 @@ class SQLHandler():
 
 	def update_rating(self, game_name, rating, table_name="main"):
 		with self.connection.cursor() as cursor:
-			sql = "SELECT rating, nb_votes FROM {0} WHERE LOWER(game)=LOWER('{1}');".format(table_name, game_name)
+			sql = """SELECT rating, nb_votes FROM {0} WHERE LOWER(game)=LOWER("{1}");""".format(table_name, game_name)
 			cursor.execute(sql)
 			result = cursor.fetchone()
 			oldrating = result["rating"]
@@ -83,7 +83,7 @@ class SQLHandler():
 			nb_votes += 1
 			if oldrating is not None:
 				rating = (rating + (nb_votes-1)*oldrating)/nb_votes
-			sql = """UPDATE `{}` SET rating={},nb_votes={} WHERE game='{}';""".format(table_name, rating, nb_votes, game_name)
+			sql = """UPDATE `{}` SET rating={},nb_votes={} WHERE game="{}";""".format(table_name, rating, nb_votes, game_name)
 			cursor.execute(sql)
 			cursor.close()
 		# self.connection is not autocommit by default. So you must commit to save

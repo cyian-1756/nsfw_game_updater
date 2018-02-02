@@ -10,7 +10,8 @@ class DownloadThread(Thread):
 		self.get_request = get_request
 		self.chunks = chunks
 		self.size = size
-		self.path = path + SEP
+		if not self.path.endswith("/") or self.path.endswith("\\"):
+			self.path = path + SEP
 		self.name = name.strip('"')
 		self.progress_ = 0
 		self.progress = 0

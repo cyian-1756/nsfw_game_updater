@@ -8,6 +8,15 @@ class DatabaseError(Exception):
 		sys.stderr.write("DatabaseError : " + self.error)
 		pass
 
+class URLFormattingError(Exception):
+	def __init__(self, error):
+		self.error = error
+
+	def __repr__(self):
+		sys.stderr.write("URLFormattingError : " + self.error)
+		pass
+
+
 class ValidationError(Exception):
 	"""
 	Error in validation stage

@@ -524,7 +524,7 @@ class GUI(tk.Frame):
 			pwd = None
 			if name.lower() == "cursed armor":
 				pwd = "wolfzq"
-			msg = "Do you wish to install the game?"
+			msg = "Do you wish to install {}?".format(name)
 			#if pwd is not None:
 			#	msg += "\nPassword: {}".format(pwd)
 			if messagebox.askyesno(title="Install game ?", message="Do you wish to install the game?", default='no'):
@@ -639,7 +639,8 @@ class GUI(tk.Frame):
 				self.threads.append(DownloadThread(r, self.chunksize, size, download, name, self.on_complete_callback))
 				self.threads[-1].daemon = True
 				self.threads[-1].start()
-		#self.downloaded_games[game_json["game"]] = version
+
+			self.downloaded_games[game_json["game"]] = version
 		pass
 	def pause_resume_download(self):
 		try:

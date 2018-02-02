@@ -73,16 +73,23 @@ class SQLHandler():
 				 f.write(json.dumps(result, indent=4, sort_keys=True))
 		return result
 
-	def update_rating(self, game_name, rating, table_name="main"):
+	def update_rating(self, game_name, rating, previous_rating=None, table_name="main"):
 		with self.connection.cursor() as cursor:
 			sql = """SELECT rating, nb_votes FROM {0} WHERE LOWER(game)=LOWER("{1}");""".format(table_name, game_name)
 			cursor.execute(sql)
 			result = cursor.fetchone()
 			oldrating = result["rating"]
 			nb_votes = result["nb_votes"]
-			nb_votes += 1
+
+			if previous_rating is None:
+				nb_votes += 1
 			if oldrating is not None:
-				rating = (rating + (nb_votes-1)*oldrating)/nb_votes
+				if previous_rating is None:
+					rating = (rating + (nb_votes-1)*oldrating)/nb_votes
+				else:
+					previous_rating = int(previous_rating)
+					oldrating = (previous_rating*nb_votes-previous_rating)/(nb_votes-1)
+					rating = (rating + (nb_votes-1)*oldrating)/nb_votes
 			sql = """UPDATE `{}` SET rating={},nb_votes={} WHERE game="{}";""".format(table_name, rating, nb_votes, game_name)
 			cursor.execute(sql)
 			cursor.close()

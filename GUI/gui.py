@@ -31,6 +31,7 @@ from mega_downloader import MegaDownloader
 from sql import SQLHandler
 from utils import *
 import tooltip
+from tkinter_ext import *
 
 logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 sys.stdout = LoggerWriter(logging.debug)
@@ -196,7 +197,7 @@ class GUI(tk.Frame):
 		self.master.config(menu=self.menubar)
 
 		self.init_treeview()
-		self.search_entry = tk.Entry(self, textvariable=self.search_string)
+		self.search_entry = EntryWithPlaceholder(self, textvariable=self.search_string, placeholder="<category>:<search>")
 		self.search_entry.grid(row=0, column=1, columnspan=14, sticky="we")
 		tk.Label(self, text="Search :").grid(row=0, column=0)
 		self.download_button = tk.Button(self, text="Download/Update", command=self.download_selected_game)
@@ -384,7 +385,12 @@ class GUI(tk.Frame):
 			self.update_game_in_tree(game)
 			self.rated_games[game["game"].lower()] = str(rating)
 		else:
-			messagebox.showinfo("Information", "You already voted for this game")
+			with SQLHandler() as handler:
+				newrating, nb_votes = handler.update_rating(game["game"], rating, self.rated_games[game["game"].lower()])
+				game["rating"] = newrating
+				game["nb_votes"] = nb_votes
+			self.update_game_in_tree(game)
+			self.rated_games[game["game"].lower()] = str(rating)
 		pass
 #Open Toplevel windows methods
 	def go_to_patreon(self):

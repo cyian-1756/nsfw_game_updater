@@ -372,13 +372,13 @@ class GUI(tk.Frame):
 
 	def rate_game(self, rating):
 		game = self.get_json_from_tree()
-		if game["game"] not in self.rated_games.keys():
+		if game["game"].lower() not in self.rated_games.keys():
 			with SQLHandler() as handler:
 				newrating, nb_votes = handler.update_rating(game["game"], rating)
 				game["rating"] = newrating
 				game["nb_votes"] = nb_votes
 			self.update_game_in_tree(game)
-			self.rated_games[game["game"]] = rating
+			self.rated_games[game["game"].lower()] = str(rating)
 		else:
 			messagebox.showinfo("Information", "You already voted for this game")
 		pass
@@ -474,6 +474,10 @@ class GUI(tk.Frame):
 	def add_games_to_tree(self, games=None):
 		if games is None:
 			games=self.json_data
+		if type(games) != type(list()):
+			tmp = []
+			tmp.append(games)
+			games = tmp.copy()
 		for i, info in enumerate(games):
 			if info["developer"] != "developer":
 				formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \

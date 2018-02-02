@@ -62,7 +62,8 @@ class AddNewGUI(tk.Toplevel):
 		settings = ('Contemporary', 'Contemporary Fantasy', 'Fantasy', 'Sci-fi', 'Sci-fi Fantasy')
 		visual_styles = ('2D Furry', '2D anime', '2D comic/cartoon', '2D pixel', '2D vector', '2D western',\
 		 '3D DAZ renders', '3D anime', '3D anime renders', '3D realistic', '3D stylized', 'Photos', 'Text', 'Text(UI icons)')
-
+		genres = ("Action RPG", "Action Adventure", "Adventure", "Adventure/Brothel", "Adventure/Sandbox", "Beat'em up", "Breeder", "Dating Sim", "Life Sim",\
+		 "Management", "Management/Breeder", "Match Three", "Platformer", "RPG", "Roguelite", "Sandbox", "Sex Sim", "Text CYOA", "Trainer", "VN", "VR Sim")
 		ttk.Combobox(self, textvariable = self.animation, state='readonly', values=("Yes", "No")).grid(row=0, column=1)
 		tk.Label(self, text="Animation :").grid(row=0, column=0)
 
@@ -102,6 +103,8 @@ class AddNewGUI(tk.Toplevel):
 		ttk.Combobox(self, textvariable = self.visual_style, state='readonly', values=visual_styles).grid(row=12, column=1)
 		tk.Label(self, text="Visual Style :").grid(row=12, column=0)
 
+		ttk.Combobox(self, textvariable = self.genre, state='readonly', values=genres).grid(row=13, column=1)
+		tk.Label(self, text="Genre :").grid(row=13, column=0)
 
 		self.ok_button = tk.Button(self, text="Ok", command=self.onOkButton)
 		self.cancel_button = tk.Button(self, text="Cancel", command=self.onCancelButton)
@@ -124,6 +127,7 @@ class AddNewGUI(tk.Toplevel):
 		self.setting.set(editdata["setting"])
 		self.visual_style.set(editdata["visual_style"])
 		self.latest_version.set(editdata["latest_version"])
+		self.genre.set(editdata["genre"])
 		pass
 
 	def onFilepathButton(self):
@@ -146,7 +150,8 @@ class AddNewGUI(tk.Toplevel):
 		"download_link_mac": check_url(self.dl_mac.get()),\
 		"download_link_linux": check_url(self.dl_linux.get()),\
 		"download_link_android": check_url(self.dl_android.get()),\
-		"graphtreon": self.graphtreon.get()}
+		"graphtreon": self.graphtreon.get(),\
+		"rating":None}
 		try:
 			add_new_game(json_to_add, self.is_new)
 			if self.is_new:

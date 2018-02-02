@@ -242,9 +242,13 @@ class GUI(tk.Frame):
 	def on_search_change_callback(self, *args):
 		search = self.search_string.get().lower().split(",")
 		search = [s.lower() for s in search]
-		matches = []
+		if search == ['']:
+			for item in self.tree_items_ids:
+				self.show_item(item)
 		for item in self.tree_items_ids:
 			values = self.get_json_from_tree(item_to_get=self.treeview.item(item))
+			if values is None:
+				continue
 			for subsearch in search:
 				for key in values.keys():
 					if subsearch.startswith(key.lower()+":"):

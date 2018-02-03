@@ -151,8 +151,7 @@ class MegaDownloader(Thread):
 		self.progress = 0
 		self.path = dest_path
 		if not self.path.endswith("/") and not self.path.endswith("\\"):
-			if platform.system().lower()=="windows":
-				self.path += SEP
+			self.path += SEP
 		self.url = url
 
 		self.schema = 'https'

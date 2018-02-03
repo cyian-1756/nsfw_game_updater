@@ -30,7 +30,6 @@ from get_from_reddit import GetFromRedditGUI
 from mega_downloader import MegaDownloader
 from sql import SQLHandler
 from utils import *
-import tooltip
 from tkinter_ext import *
 
 logging.basicConfig(filename='log.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
@@ -134,6 +133,10 @@ class GUI(tk.Frame):
 		self.master.bind('<Control-w>', self.mark_as_downloaded)
 		self.master.bind('<Control-q>', self.go_to_patreon)
 		self.master.bind('<Button-3>', self.display_contextual)
+		self.master.bind('<Home>', self.onHomeKey)
+		self.master.bind('<End>', self.onEndKey)
+		self.master.bind('<Prior>', self.onPgUpKey)
+		self.master.bind('<Next>', self.onPgDnKey)
 		pass
 
 	def init_contextual(self):
@@ -146,10 +149,10 @@ class GUI(tk.Frame):
 		self.contextual_menu.add_separator()
 		self.contextual_menu.add_command(label="Edit Entry", command=self.edit_current_game)
 		self.contextual_menu.add_command(label="Hide Item", command=self.hide_item)
-		ratingmenu = tk.Menu(self)
+		self.ratingmenu = tk.Menu(self)
 		for i in range(5):
-			ratingmenu.add_command(label=rating_as_stars(i+1), command=lambda x=i+1:self.rate_game(x))
-		self.contextual_menu.add_cascade(label="Rate Game", menu=ratingmenu)
+			self.ratingmenu.add_command(label=rating_as_stars(i+1), command=lambda x=i+1:self.rate_game(x))
+		self.contextual_menu.add_cascade(label="Rate Game", menu=self.ratingmenu)
 
 	def init_layout(self):
 		self.menubar = tk.Menu(self)
@@ -211,13 +214,17 @@ class GUI(tk.Frame):
 		self.progressbar.grid(row=2, column=3, columnspan=11, sticky="ew", padx=0)
 		tk.Button(self, text="Cancel", command=self.cancel_download).grid(row=2, column=14, padx=0)
 
+
 		self.custom_loop()
 		pass
 
 	def init_treeview(self):
 		columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Rating")
 		self.columns = columns
-		self.treeview = ttk.Treeview(self, columns = columns, show="headings", height=30)
+		treeframe = tk.Frame(self)
+		treeframe.grid(row=1, column=0, columnspan=15, sticky="nsew")
+
+		self.treeview = ttk.Treeview(treeframe, columns = columns, show="headings", height=30)
 		def treeview_sort_column(tv, col, reverse):
 			l = [(tv.set(k, col), k) for k in tv.get_children('')]
 			l.sort(reverse=reverse)
@@ -231,11 +238,15 @@ class GUI(tk.Frame):
 			self.treeview.column(column, anchor = tk.CENTER, stretch=True)
 			self.treeview.heading(column, text=column.capitalize(), command=lambda _col=column: \
 									treeview_sort_column(self.treeview, _col, False))
-		self.treeview.grid(row=1, column=0, columnspan=15, sticky="nsew")
+		self.treeview.grid(row=0, column=0, columnspan=14, sticky="nsew")
+		scrollbar = ttk.Scrollbar(treeframe, orient="vertical", command=self.treeview.yview)
+		scrollbar.grid(row=0, column=15, sticky="ns")
 		self.treeview.tag_configure('has_update', background="IndianRed2")
 		self.treeview.tag_configure('paid', background="AntiqueWhite1")
 		self.treeview.tag_configure('hide')
 		self.treeview.tag_configure('show')
+		#self.tree_tooltips = TooltipTreeWrapper(self.treeview, background="light goldenrod", foreground="black")
+
 		self.add_games_to_tree()
 		self.update_treeview()
 
@@ -258,7 +269,6 @@ class GUI(tk.Frame):
 							self.hide_item(item)
 						else:
 							self.show_item(item)
-
 		pass
 
 	def on_closing(self):
@@ -276,6 +286,22 @@ class GUI(tk.Frame):
 		self.master.destroy()
 
 	def onKeypressEvent(self, event):
+		pass
+
+	def onHomeKey(self, event):
+		self.treeview.yview(tk.MOVETO, 0)
+		pass
+
+	def onEndKey(self, event):
+		self.treeview.yview(tk.MOVETO, 1)
+		pass
+
+	def onPgDnKey(self, event):
+		self.treeview.yview(tk.SCROLL, 1, tk.PAGES)
+		pass
+
+	def onPgUpKey(self, event):
+		self.treeview.yview(tk.SCROLL, -1, tk.PAGES)
 		pass
 
 	def onCtrlC(self, event=None):
@@ -298,15 +324,24 @@ class GUI(tk.Frame):
 		pass
 
 	def display_contextual(self, event):
+		for i in range(1, 6):
+			self.ratingmenu.entryconfig(i, foreground="gold2")
 		try:
 			iid = self.treeview.identify_row(event.y)
 			if iid:
 				# mouse pointer over item
 				self.treeview.selection_set(iid)
 				self.treeview.focus(iid)
+				try:
+					game = self.treeview.item(iid)["values"][self.columns.index("Game")].lower()
+					rating = int(self.rated_games[game])
+					self.ratingmenu.entryconfig(rating, foreground="SteelBlue3")
+				except KeyError as e:
+					logging.exception("Error on dict")
+					pass
 			self.contextual_menu.tk_popup(event.x_root, event.y_root, 0)
 		except Exception as e:
-			logging.error("Error on display_contextual function : {}".format(e))
+			logging.exception("Error on display_contextual function : {}".format(e))
 		finally:
 			# make sure to release the grab (Tk 8.0a1 only)
 			self.contextual_menu.grab_release()
@@ -496,6 +531,7 @@ class GUI(tk.Frame):
 				if "paid" in info["public_build"]:
 					tags.append('paid')
 				self.tree_items_ids.append(self.treeview.insert('', 'end', values = formatted, tags=tags))
+				#self.tree_tooltips.add_tooltip(self.tree_items_ids[-1], "Current votes : {}".format(info["nb_votes"]))
 
 	def update_game_in_tree(self, game_json):
 		for iid in self.tree_items_ids:

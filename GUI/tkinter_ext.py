@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.ttk as ttk
 
 class EntryWithPlaceholder(tk.Entry):
 	def __init__(self, master=None, placeholder="PLACEHOLDER", color='grey', **kwargs):
@@ -142,3 +143,106 @@ if __name__ == "__main__":
 
 	cf1.update_width()
 	root.mainloop()
+
+class Tooltip(tk.Toplevel):
+	"""Tooltip to display when the mouse stays long enough on an item."""
+	def __init__(self, parent, **kwargs):
+		"""
+		Create Tooltip.
+		Options:
+			* parent: parent window
+			* background: background color
+			* foreground: foreground color
+			* image: PhotoImage/BitmapImage to display in the tooltip
+			* text: text (str) to display in the tooltip
+			* compound: relative orientation of the graphic relative to the text
+			* alpha: opacity of the tooltip (0 for transparent, 1 for opaque),
+					 the text is affected too, so 0 would mean an invisible tooltip
+		"""
+		tk.Toplevel.__init__(self, parent)
+		self.transient(parent)
+		self.attributes('-type', 'tooltip')
+		self.attributes('-alpha', kwargs.get('alpha', 0.8))
+		self.overrideredirect(True)
+		self.configure(padx=kwargs.get('padx', 4))
+		self.configure(pady=kwargs.get('pady', 4))
+
+		self.style = ttk.Style(self)
+		if 'background' in kwargs:
+			bg = kwargs['background']
+			self.configure(background=bg)
+			self.style.configure('tooltip.TLabel', background=bg)
+		if 'foreground' in kwargs:
+			self.style.configure('tooltip.TLabel', foreground=kwargs['foreground'])
+
+		self.im = kwargs.get('image', None)
+		self.label = ttk.Label(self, text=kwargs.get('text', ''), image=self.im,
+							   style='tooltip.TLabel',
+							   compound=kwargs.get('compound', 'left'))
+		self.label.pack()
+
+	def configure(self, **kwargs):
+		if 'text' in kwargs:
+			self.label.configure(text=kwargs.pop('text'))
+		if 'image' in kwargs:
+			self.label.configure(image=kwargs.pop('image'))
+		if 'background' in kwargs:
+			self.style.configure('tooltip.TLabel', background=kwargs['background'])
+		if 'foreground' in kwargs:
+			fg = kwargs.pop('foreground')
+			self.style.configure('tooltip.TLabel', foreground=fg)
+		if 'alpha' in kwargs:
+			self.attributes('-alpha', kwargs.pop('alpha'))
+		tk.Toplevel.configure(self, **kwargs)
+
+
+class TooltipTreeWrapper:
+	"""Tooltip wrapper for a Treeview."""
+	def __init__(self, tree, delay=1500, **kwargs):
+		"""
+		Create a Tooltip wrapper for the Treeview tree.
+		This wrapper enables the creation of tooltips for tree's items with all
+		the bindings to make them appear/disappear.
+		Options:
+			* tree: wrapped Treeview
+			* delay: hover delay before displaying the tooltip (ms)
+			* all keyword arguments of a Tooltip
+		"""
+		self.tree = tree
+		self.delay = delay
+		self._timer_id = ''
+		self.tooltip_text = {}
+		self.tooltip = Tooltip(tree, **kwargs)
+		self.tooltip.withdraw()
+		self.current_item = None
+
+		self.tree.bind('<Motion>', self._on_motion)
+		self.tree.bind('<Leave>', lambda e: self.tree.after_cancel(self._timer_id))
+
+	def add_tooltip(self, item, text):
+		"""Add a tooltip with given text to the item."""
+		self.tooltip_text[item] = text
+
+	def _on_motion(self, event):
+		"""Withdraw tooltip on mouse motion and cancel its appearance."""
+		if self.tooltip.winfo_ismapped():
+			x, y = self.tree.winfo_pointerxy()
+			if self.tree.winfo_containing(x, y) != self.tooltip:
+				if self.tree.identify_row(y - self.tree.winfo_rooty()):
+					self.tooltip.withdraw()
+					self.current_item = None
+		else:
+			self.tree.after_cancel(self._timer_id)
+			self._timer_id = self.tree.after(self.delay, self.display_tooltip)
+
+	def display_tooltip(self):
+		"""Display the tooltip corresponding to the hovered item."""
+		item = self.tree.identify_row(self.tree.winfo_pointery() - self.tree.winfo_rooty())
+		text = self.tooltip_text.get(item, '')
+		self.current_item = item
+		if text:
+			self.tooltip.configure(text=text)
+			self.tooltip.deiconify()
+			x = self.tree.winfo_pointerx() + 14
+			y = self.tree.winfo_rooty() + self.tree.bbox(item)[1] + self.tree.bbox(item)[3]
+			self.tooltip.geometry('+%i+%i' % (x, y))

@@ -72,6 +72,18 @@ class SQLHandler():
 			with open('pending_games.json', 'w', encoding="utf-8") as f:
 				 f.write(json.dumps(result, indent=4, sort_keys=True))
 		return result
+	def update(self, game, table_name="main"):
+		with self.connection.cursor() as cursor:
+			sql = """SELECT * FROM {0} WHERE LOWER(game)=LOWER("{1}");""".format(table_name, game["game"])
+			cursor.execute(sql)
+			result = cursor.fetchone()
+			#TODO
+			sql = """UPDATE `{}` SET  WHERE game="{}";""".format(table_name, rating, nb_votes, game_name)
+			cursor.execute(sql)
+			cursor.close()
+		# self.connection is not autocommit by default. So you must commit to save
+		# your changes.
+		self.connection.commit()
 
 	def update_rating(self, game_name, rating, previous_rating=None, table_name="main"):
 		with self.connection.cursor() as cursor:

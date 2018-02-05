@@ -273,7 +273,7 @@ class MegaDownloader(Thread):
 				raise ValueError('Mismatched mac')
 
 			shutil.move(temp_output_file.name, dest_path + file_name)
-			self.callback(file_name, self.path)
+			self.callback(self, file_name, self.path)
 
 	def pause(self):
 		self.paused = True

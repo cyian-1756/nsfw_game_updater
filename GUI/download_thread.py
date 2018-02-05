@@ -32,7 +32,7 @@ class DownloadThread(Thread):
 							self.progress_ += 1
 							self.progress = int(self.progress_/(self.size//self.chunks)*100)
 							f.write(chunk)
-			self.callback(self.name, self.path)
+			self.callback(self, self.name, self.path)
 
 	def pause(self):
 		self.paused = True

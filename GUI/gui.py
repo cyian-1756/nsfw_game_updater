@@ -219,7 +219,7 @@ class GUI(tk.Frame):
 		pass
 
 	def init_treeview(self):
-		columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Rating")
+		columns=("Developer", "Game", "Setting", "Engine", "Genre", "Visual style", "Animation", "Version", "Rating")
 		self.columns = columns
 		treeframe = tk.Frame(self)
 		treeframe.grid(row=1, column=0, columnspan=15, sticky="nsew")
@@ -526,7 +526,7 @@ class GUI(tk.Frame):
 		for i, info in enumerate(games):
 			if info["developer"] != "developer":
 				formatted = (info["developer"], info["game"], info["setting"], info["engine"], info["genre"], \
-				info["visual_style"], info["animation"], rating_as_stars(info["rating"]))
+				info["visual_style"], info["animation"], info["latest_version"], rating_as_stars(info["rating"]))
 				tags = ['show']
 				if "paid" in info["public_build"]:
 					tags.append('paid')
@@ -544,6 +544,8 @@ class GUI(tk.Frame):
 						continue
 					elif "visual style" in col.lower():
 						tmp.append(game_json["visual_style"])
+					elif 'version' in col.lower():
+						tmp.append(game_json["latest_version"])
 					else:
 						tmp.append(game_json[col.lower()])
 				tmp = tuple(tmp)
@@ -566,10 +568,10 @@ class GUI(tk.Frame):
 			messagebox.showerror("Error", message="You need to select an item first !")
 			return
 
-	def on_complete_callback(self, name, path):
+	def on_complete_callback(self, thread, name, path):
 		def can_install(filename):
 			return ".zip" in filename
-
+		thread.stop()
 		if can_install(name):
 			pwd = None
 			if name.lower() == "cursed armor":
@@ -675,7 +677,7 @@ class GUI(tk.Frame):
 						try:
 							size = int(r.headers['Content-Length'])
 							d = r.headers['content-disposition']
-							name = re.findall("filename=(.+)", d)[0]
+							name = re.findall("filename=(.+)", d)[0].strip("/\\")
 						except KeyError as e:
 							logging.warning("Error on file downloading, name:{}, error :{}".format(game_json["game"], e))
 							name = url.split("/")[-1:][0]
